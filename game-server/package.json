@@ -1,0 +1,15 @@
+{
+    "name":"FootBallXServer",
+    "version":"0.0.1",
+    "private":false,
+    "dependencies":{
+        "pomelo":"0.9.5",
+		"async":"0.6.2",
+		"generic-pool":"2.0.4",
+		"mysql":"2.1.1",
+		"pomelo-sync":"0.0.4",
+		"pomelo-sync-plugin":"0.0.1"
+    }
+
+}
+

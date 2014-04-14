@@ -1,0 +1,131 @@
+{
+    "development": {
+        "connector": [
+            {
+                "id": "connector-server-1",
+                "host": "127.0.0.1",
+                "port": 3150,
+                "clientPort": 3010,
+                "frontend": true
+            },
+            {
+                "id": "connector-server-2",
+                "host": "127.0.0.1",
+                "port": 3151,
+                "clientPort": 3011,
+                "frontend": true
+            }
+        ],
+        "gate": [
+            {
+                "id": "gate-server-1",
+                "host": "127.0.0.1",
+                "clientPort": 3017,
+                "frontend": true
+            }
+        ],
+        "auth": [
+            {
+                "id": "auth-server-1",
+                "host": "127.0.0.1",
+                "port": 3650
+            }
+        ],
+        "gameplay": [
+            {
+                "id": "gameplay-server-1",
+                "host": "127.0.0.1",
+                "port": 4000,
+                "args": "--debug=32312"
+            },
+            {
+                "id": "gameplay-server-2",
+                "host": "127.0.0.1",
+                "port": 4001
+            }
+        ],
+        "league": [
+            {
+                "id": "league-server-single",
+                "host": "127.0.0.1",
+                "port": 5000
+            }
+        ],
+        "match": [
+            {
+                "id": "match-server-1",
+                "host": "127.0.0.1",
+                "port": 6000
+            },
+            {
+                "id": "match-server-2",
+                "host": "127.0.0.1",
+                "port": 6001
+            }
+        ]
+    },
+    "production": {
+        "connector": [
+            {
+                "id": "connector-server-1",
+                "host": "127.0.0.1",
+                "port": 3150,
+                "clientPort": 3010,
+                "frontend": true
+            },
+            {
+                "id": "connector-server-2",
+                "host": "127.0.0.1",
+                "port": 3151,
+                "clientPort": 3011,
+                "frontend": true
+            }
+        ],
+        "gate": [
+            {
+                "id": "gate-server-1",
+                "host": "127.0.0.1",
+                "clientPort": 3017,
+                "frontend": true
+            }
+        ],
+        "auth": [
+            {
+                "id": "auth-server-1",
+                "host": "127.0.0.1",
+                "port": 3650
+            }
+        ],
+        "gameplay": [
+            {
+                "id": "gameplay-server-1",
+                "host": "127.0.0.1",
+                "port": 4000
+            },
+            {
+                "id": "gameplay-server-2",
+                "host": "127.0.0.1",
+                "port": 4001
+            }
+        ],
+        "league": [
+            {
+                "id": "league-server-single",
+                "host": "127.0.0.1",
+                "port": 5000
+            }
+        ],
+        "match": [
+            {
+                "id": "match-server-1",
+                "host": "127.0.0.1",
+                "port": 6000
+            },
+            {
+                "id": "match-server-2",
+                "host": "127.0.0.1",
+                "port": 6001
+            }
+        ]
+    }
+}

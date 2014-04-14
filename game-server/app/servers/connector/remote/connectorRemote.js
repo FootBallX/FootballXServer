@@ -1,0 +1,1 @@
+var async = require('async');var userDao = require('../../../dao/userDao');var Code = require('../../../shared/code');var PM = require('../../../gameobject/playerManager');var utils = require('../../../util/utils');module.exports = function(app) {	return new Remote(app);};var Remote = function(app) {	this.app = app;};var pro = Remote.prototype;
