@@ -18,7 +18,9 @@ exp.createMatch = function(p1, p2, time, callback)
     }
 
     p1['ready'] = false;
+    p1['dominator'] = false;
     p2['ready'] = false;
+    p2['dominator'] = false;
     var mc = {p1:p1, p2:p2, token:token, time:time};
 
     matchs[token] = mc;
@@ -80,6 +82,18 @@ exp.ready = function(token, uid, callback)
     }
 
     if (mc.p1.ready && mc.p2.ready) {
+        var num = new Date().getTime() % 2;
+        if (num == 0)
+        {
+            mc.p1.dominator = true;
+            mc.p2.dominator = false;
+        }
+        else
+        {
+            mc.p1.dominator = false;
+            mc.p2.dominator = true;
+        }
+
         utils.invokeCallback(callback, null, true, [mc.p1, mc.p2]);
         return;
     }
@@ -107,4 +121,47 @@ exp.getOpponent = function(token, uid, callback)
     }
 
     utils.invokeCallback(callback, null, [p]);
+}
+
+
+
+exp.swichDominator = function(token, callback)
+{
+    var num = new Date().getTime() % 2;
+    var mc = matchs[token];
+
+    if (num == 0)
+    {
+        mc.p1.dominator = true;
+        mc.p2.dominator = false;
+        utils.invokeCallback(callback, null, mc.p1.uid, mc.p2.uid);
+    }
+    else
+    {
+        mc.p1.dominator = false;
+        mc.p2.dominator = true;
+        utils.invokeCallback(callback, null, mc.p2.uid, mc.p1.uid);
+    }
+
+
+}
+
+
+
+exp.checkDominator = function(token, uid, callback)
+{
+    var mc = matchs[token];
+
+    if (mc.p1.uid == uid)
+    {
+        utils.invokeCallback(callback, null, mc.p1.dominator);
+        return;
+    }
+    else if (mc.p2.uid == uid)
+    {
+        utils.invokeCallback(callback, null, mc.p2.dominator);
+        return;
+    }
+
+    utils.invokeCallback(callback, null, false);
 }

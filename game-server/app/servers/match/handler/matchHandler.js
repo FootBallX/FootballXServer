@@ -12,6 +12,23 @@ var Handler = function (app) {
     this.cs = app.get('channelService');
 };
 
+var swichDominator = function(self, token){
+    MM.swichDominator(token, function(err, uid1, uid2){
+        self.cs.pushMessageByUids("switchDominator", {gotDominator:true}, [uid1], function (err) {
+            if (err) {
+                console.log("err: ");
+                console.log(err);
+            }
+        });
+        self.cs.pushMessageByUids("switchDominator",  {gotDominator:true}, [uid2], function (err) {
+            if (err) {
+                console.log("err: ");
+                console.log(err);
+            }
+        });
+    });
+}
+
 
 var pro = Handler.prototype;
 
@@ -33,7 +50,14 @@ pro.ready = function (msg, session, next) {
             var t = new Date().getTime();
             t += 5000000;
             var k = t % 2;
-            self.cs.pushMessageByUids("startMatch", {code: Code.OK, left: users[0].uid, right: users[1].uid, kickOffSide:k, startTime:t}, users, function (err) {
+            var dominatorUid = 0;
+            if (users[0].dominator) {
+                dominatorUid = users[0].uid;
+            }
+            else if (users[1].dominator) {
+                dominatorUid = users[1].uid;
+            }
+            self.cs.pushMessageByUids("startMatch", {code: Code.OK, left: users[0].uid, right: users[1].uid, kickOffSide:k, startTime:t, dominatorUid:dominatorUid}, users, function (err) {
                 if (err) {
                     console.log("err: ");
                     console.log(err);
