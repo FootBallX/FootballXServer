@@ -48,7 +48,7 @@ pro.ready = function (msg, session, next) {
 
         if (start) {
             var t = new Date().getTime();
-            t += 5000000;
+            t += 5000;
             var k = t % 2;
             var dominatorUid = 0;
             if (users[0].dominator) {
