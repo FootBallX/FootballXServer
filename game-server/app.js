@@ -42,6 +42,7 @@ app.configure('production|development', 'gate', function () {
     app.set('connectorConfig',
         {
             connector: pomelo.connectors.hybridconnector,
+            useDict: true,
             useProtobuf: true
         });
 
@@ -89,6 +90,7 @@ app.configure('production|development', 'match', function () {
 
 // start app
 app.start();
+
 
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);

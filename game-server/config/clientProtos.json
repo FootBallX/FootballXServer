@@ -1,1 +1,13 @@
-{}
+{
+    "gate.gateHandler.queryConnectorEntry": {
+        "required string userName" : 1,
+        "required string password" : 2
+    },
+
+    "match.matchHandler.sync": {
+        "required uInt32 type" : 1,
+        "required uInt32 ballPosPlayerId" : 2,
+        "required uInt32 timeStamp" : 3,
+        "repeated float teamPos" : 4
+    }
+}

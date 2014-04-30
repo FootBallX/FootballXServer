@@ -1,1 +1,8 @@
-{}
+[
+    "sync",
+    "startMatch",
+    "switchDominator",
+    "endMatch",
+    "connector.entryHandler.login",
+    "gate.gateHandler.queryConnectorEntry"
+]

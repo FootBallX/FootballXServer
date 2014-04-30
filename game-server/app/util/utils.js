@@ -80,5 +80,12 @@ utils.myPrint = function() {
     console.log('\n' + aimStr);
   }
 };
+
+
+utils.getTimeInUint32 = function(cb) {
+    var t = new Date().getTime();
+    t = (t & 0xffffffff) >>> 0;
+    cb(t);
+}
 // print the file name and the line number ~ end
 

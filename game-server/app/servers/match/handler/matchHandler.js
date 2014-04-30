@@ -2,6 +2,7 @@ var async = require('async');
 var userDao = require('../../../dao/userDao');
 var Code = require('../../../shared/code');
 var MM = require('../../../gameobject/matchManager');
+var utils = require('../../../util/utils');
 
 module.exports = function (app) {
     return new Handler(app);
@@ -47,21 +48,22 @@ pro.ready = function (msg, session, next) {
         next(null, {code: Code.OK});
 
         if (start) {
-            var t = new Date().getTime();
-            t += 5000;
-            var k = t % 2;
-            var dominatorUid = 0;
-            if (users[0].dominator) {
-                dominatorUid = users[0].uid;
-            }
-            else if (users[1].dominator) {
-                dominatorUid = users[1].uid;
-            }
-            self.cs.pushMessageByUids("startMatch", {code: Code.OK, left: users[0].uid, right: users[1].uid, kickOffSide:k, startTime:t, dominatorUid:dominatorUid}, users, function (err) {
-                if (err) {
-                    console.log("err: ");
-                    console.log(err);
+            utils.getTimeInUint32(function(t){
+                t += 5000;
+                var k = t % 2;
+                var dominatorUid = 0;
+                if (users[0].dominator) {
+                    dominatorUid = users[0].uid;
                 }
+                else if (users[1].dominator) {
+                    dominatorUid = users[1].uid;
+                }
+                self.cs.pushMessageByUids("startMatch", {code: Code.OK, left: users[0].uid, right: users[1].uid, kickOffSide:k, startTime:t, dominatorUid:dominatorUid}, users, function (err) {
+                    if (err) {
+                        console.log("err: ");
+                        console.log(err);
+                    }
+                });
             });
         }
     });
@@ -98,6 +100,9 @@ pro.sync = function (msg, session, next) {
 pro.time = function(msg, session, next) {
 //    var startTime = new Date().getTime();
 //    while(new Date().getTime()<startTime+500);
-    msg['sTime'] = new Date().getTime();
-    next(null, msg);
+
+    utils.getTimeInUint32(function(t){
+        msg['sTime'] = t;
+        next(null, msg);
+    });
 }
