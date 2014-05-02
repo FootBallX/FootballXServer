@@ -23,6 +23,14 @@ app.loadConfig('mysql', app.getBase() + '/config/mysql.json');
 // Configure database
 app.configure('production|development', 'auth|connector|league|gameplay|match', function () {
     var dbclient = require('./app/dao/mysql/mysql').init(app);
+    var sql = 'call kickAll';
+    var args = [];
+    dbclient.query(sql, args, function (err, res) {
+        if (err) {
+            console.log(err);
+            console.error("make sure that database had been started.")
+        }
+    });
     app.set('dbclient', dbclient);
     app.use(sync, {sync: {path: __dirname + '/app/dao/mapping', dbclient: dbclient}});
 });
