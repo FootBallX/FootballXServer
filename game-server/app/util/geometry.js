@@ -1,5 +1,3 @@
-var logger = require('pomelo-logger').getLogger(__filename);
-
 var exp = module.exports;
 
 /**
@@ -128,3 +126,15 @@ exp.isRectIntersect = function(p1, p2, q1, q2) {
 exp.vecCross = function(v1, v2) {
 	return v1.x * v2.y - v2.x * v1.y;
 };
+
+
+
+exp.vecDot = function(v1, v2) {
+    return v1.x * v2.x + v1.y * v2.y;
+}
+
+
+
+exp.getLengthSq = function(v1, v2) {
+    return (v2.x-v1.x) * (v2.x-v1.x) + (v2.y-v1.y) * (v2.y-v1.y);
+}

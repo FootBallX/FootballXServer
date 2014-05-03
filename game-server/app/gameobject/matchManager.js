@@ -1,4 +1,5 @@
 var utils = require('../util/utils');
+var geometry = require('../util/geometry');
 
 var exp = module.exports;
 
@@ -6,22 +7,75 @@ var matchs = {};
 
 var globalToken = 0;
 
-exp.createMatch = function(p1, p2, time, callback)
-{
+var getOtherSide = function (side) {
+    if (side == 0) return 1;
+    if (side == 1) return 0;
+
+    console.log("wrong side!");
+
+    return -1;
+}
+
+exp.updateMatch = function (token, callback) {
+    var currentTime = utils.getTimeInUint32();
+
+    var mc = matchs[token];
+    if (mc) {
+        var dt = currentTime - mc.lastUpdateTime;
+        if (dt >= 1000) {
+            mc.lastUpdateTime = currentTime;
+            var p = mc.p[mc.attackSide];
+            var op = mc.p[getOtherSide(mc.attackSide)];
+            var v1 = p.position[mc.ball];
+            var defplayer = [];
+            for (var i = 0; i < op.position.length; ++i) {
+                var dist = geometry.getLengthSq(v1, op.position[i]);
+                if (dist < 1600)    // 40 * 40 （距离40以内）
+                {
+                    defplayer.push(i);
+                }
+            }
+
+            if (defplayer.length == 0) {
+                mc.encounterTime = -1;
+            }
+            else if (defplayer.length >= 4) {
+                utils.invokeCallback(callback, null, mc.ball, defplayer);
+                mc.encounterTime = -1;
+            }
+            else if (defplayer.length > 0) {
+                if (mc.encounterTime < 0) {
+                    mc.encounterTime = 2000;        // 2 second
+                }
+                mc.encounterTime -= dt;
+                if (mc.encounterTime < 0) {
+                    utils.invokeCallback(callback, null, mc.ball, defplayer);
+                }
+            }
+        }
+    }
+}
+
+
+exp.createMatch = function (p1, p2, time, callback) {
     // TODO: token生成算法
     var token = ++globalToken;
 
-    if (matchs[token])
-    {
+    if (matchs[token]) {
         utils.invokeCallback(callback, new Error('wrong match token'));
         return;
     }
 
     p1['ready'] = false;
-    p1['dominator'] = false;
+    p1['position'] = [];
+    p1['lastSyncTime'] = 0;
+    p1['score'] = 0;
     p2['ready'] = false;
-    p2['dominator'] = false;
-    var mc = {p1:p1, p2:p2, token:token, time:time};
+    p2['position'] = [];
+    p2['lastSyncTime'] = 0;
+    p2['score'] = 0;
+
+    var mc = {p: [p1, p2], ball: 0, attackSide: 0, syncCount: 0, encounterTime: -1, lastUpdateTime: 0, token: token, createdTime: time, startTime: 0};
 
     matchs[token] = mc;
 
@@ -29,14 +83,12 @@ exp.createMatch = function(p1, p2, time, callback)
 }
 
 
-exp.destroyMatch = function(token, callback)
-{
+exp.destroyMatch = function (token, callback) {
     var p;
     var mc = matchs[token];
-    if (mc)
-    {
+    if (mc) {
         delete matchs[token];
-        utils.invokeCallback(callback, null, [mc.p1, mc.p2]);
+        utils.invokeCallback(callback, null, mc.p);
 
         return;
     }
@@ -45,16 +97,13 @@ exp.destroyMatch = function(token, callback)
 }
 
 
-exp.update = function(dt, callback)
-{
+exp.update = function (dt, callback) {
     // TODO: 检查超时比赛
 }
 
 
-exp.checkToken = function(token, callback)
-{
-    if (matchs[token])
-    {
+exp.checkToken = function (token, callback) {
+    if (matchs[token]) {
         utils.invokeCallback(callback, null);
         return;
     }
@@ -63,38 +112,41 @@ exp.checkToken = function(token, callback)
 }
 
 
-exp.ready = function(token, uid, callback)
-{
+exp.ready = function (token, uid, callback) {
     var mc = matchs[token];
 
-    if (mc.p1.uid == uid)
-    {
-        mc.p1.ready = true;
-    }
-    else if (mc.p2.uid == uid)
-    {
-        mc.p2.ready = true;
-    }
-    else
-    {
-        utils.invokeCallback(callback, new Error('wrong uid'));
-        return;
+    var i;
+    var readyCount = 0;
+    for (i = 0; i < mc.p.length; ++i) {
+        if (mc.p[i].uid == uid) {
+            mc.p[i].ready = true;
+            readyCount++;
+        }
+        else if (!!mc.p[i].ready) {
+            readyCount++;
+        }
     }
 
-    if (mc.p1.ready && mc.p2.ready) {
-        var num = new Date().getTime() % 2;
-        if (num == 0)
-        {
-            mc.p1.dominator = true;
-            mc.p2.dominator = false;
-        }
-        else
-        {
-            mc.p1.dominator = false;
-            mc.p2.dominator = true;
+
+    if (readyCount >= 2) {
+
+        var t = utils.getTimeInUint32();
+        t += 5000;
+        var k = utils.getRandom(2);
+        var s = utils.getRandom(2);
+
+        console.log(k + ' : ' + s);
+
+        if (s == 0) {
+            mc.p.reverse();
         }
 
-        utils.invokeCallback(callback, null, true, [mc.p1, mc.p2]);
+        mc.attackSide = k;
+        mc.startTime = t;
+        mc.lastUpdateTime = t;
+
+        utils.invokeCallback(callback, null, true, mc.p, k, t);
+
         return;
     }
 
@@ -102,20 +154,16 @@ exp.ready = function(token, uid, callback)
 }
 
 
-exp.getOpponent = function(token, uid, callback)
-{
+exp.getOpponent = function (token, uid, callback) {
     var mc = matchs[token];
     var p;
-    if (mc.p1.uid == uid)
-    {
-        p = mc.p2;
+    if (mc.p[0].uid == uid) {
+        p = mc.p[1];
     }
-    else if (mc.p2.uid == uid)
-    {
-        p = mc.p1;
+    else if (mc.p[1].uid == uid) {
+        p = mc.p[0];
     }
-    else
-    {
+    else {
         utils.invokeCallback(callback, new Error('uid error!'));
         return;
     }
@@ -124,44 +172,36 @@ exp.getOpponent = function(token, uid, callback)
 }
 
 
-
-exp.swichDominator = function(token, callback)
-{
-    var num = new Date().getTime() % 2;
+exp.syncPlayerPos = function (token, uid, teamPos, ballPos, timeStamp, callback) {
     var mc = matchs[token];
-
-    if (num == 0)
-    {
-        mc.p1.dominator = true;
-        mc.p2.dominator = false;
-        utils.invokeCallback(callback, null, mc.p1.uid, mc.p2.uid);
+    var p;
+    var attack = false;
+    if (mc.p[0].uid == uid) {
+        p = mc.p[0];
+        if (mc.attackSide == 0) {
+            attack = true;
+        }
     }
-    else
-    {
-        mc.p1.dominator = false;
-        mc.p2.dominator = true;
-        utils.invokeCallback(callback, null, mc.p2.uid, mc.p1.uid);
-    }
-
-
-}
-
-
-
-exp.checkDominator = function(token, uid, callback)
-{
-    var mc = matchs[token];
-
-    if (mc.p1.uid == uid)
-    {
-        utils.invokeCallback(callback, null, mc.p1.dominator);
-        return;
-    }
-    else if (mc.p2.uid == uid)
-    {
-        utils.invokeCallback(callback, null, mc.p2.dominator);
-        return;
+    else if (mc.p[1].uid == uid) {
+        p = mc.p[1];
+        if (mc.attackSide == 1) {
+            attack = true;
+        }
     }
 
-    utils.invokeCallback(callback, null, false);
+    if (attack) {
+        mc.ball = ballPos;
+    }
+
+    var i = 0;
+    p.position = [];
+    for (i = 0; i < teamPos.length; i += 4) {
+        p.position.push({x: teamPos[i], y: teamPos[i + 1]});
+    }
+
+    p.lastSyncTime = timeStamp;
+
+    mc.syncCount++;
+
+    utils.invokeCallback(callback, null);
 }

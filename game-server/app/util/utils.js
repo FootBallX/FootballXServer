@@ -82,10 +82,20 @@ utils.myPrint = function() {
 };
 
 
-utils.getTimeInUint32 = function(cb) {
+utils.getTimeInUint32 = function() {
     var t = new Date().getTime();
     t = (t & 0xffffffff) >>> 0;
-    cb(t);
+    return t;
 }
+
+
+utils.getRandom = function(range) {
+    var r = Math.random();
+    r *= 10000000000;
+    r = Math.round(r);
+
+    return r % range;
+}
+
 // print the file name and the line number ~ end
 

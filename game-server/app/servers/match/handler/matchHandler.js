@@ -13,23 +13,6 @@ var Handler = function (app) {
     this.cs = app.get('channelService');
 };
 
-var swichDominator = function(self, token){
-    MM.swichDominator(token, function(err, uid1, uid2){
-        self.cs.pushMessageByUids("switchDominator", {gotDominator:true}, [uid1], function (err) {
-            if (err) {
-                console.log("err: ");
-                console.log(err);
-            }
-        });
-        self.cs.pushMessageByUids("switchDominator",  {gotDominator:true}, [uid2], function (err) {
-            if (err) {
-                console.log("err: ");
-                console.log(err);
-            }
-        });
-    });
-}
-
 
 var pro = Handler.prototype;
 
@@ -38,7 +21,7 @@ pro.ready = function (msg, session, next) {
     var self = this;
     var t = session.get('matchToken');
 
-    MM.ready(t, session.uid, function (err, start, users) {
+    MM.ready(t, session.uid, function (err, start, users, kickSide, startTime) {
 
         if (err) {
             next(null, {code: Code.FAIL});
@@ -48,22 +31,11 @@ pro.ready = function (msg, session, next) {
         next(null, {code: Code.OK});
 
         if (start) {
-            utils.getTimeInUint32(function(t){
-                t += 5000;
-                var k = t % 2;
-                var dominatorUid = 0;
-                if (users[0].dominator) {
-                    dominatorUid = users[0].uid;
+            self.cs.pushMessageByUids("startMatch", {code: Code.OK, left: users[0].uid, right: users[1].uid, kickOffSide: kickSide, startTime: startTime}, users, function (err) {
+                if (err) {
+                    console.log("err: ");
+                    console.log(err);
                 }
-                else if (users[1].dominator) {
-                    dominatorUid = users[1].uid;
-                }
-                self.cs.pushMessageByUids("startMatch", {code: Code.OK, left: users[0].uid, right: users[1].uid, kickOffSide:k, startTime:t, dominatorUid:dominatorUid}, users, function (err) {
-                    if (err) {
-                        console.log("err: ");
-                        console.log(err);
-                    }
-                });
             });
         }
     });
@@ -75,6 +47,17 @@ pro.sync = function (msg, session, next) {
     var self = this;
     var t = session.get('matchToken');
 
+    MM.syncPlayerPos(t, session.uid, msg.teamPos, msg.ballPosPlayerId, msg.timeStamp, function (err) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+
+        process.nextTick(MM.updateMatch.bind(null, t, function (err, p1, defPlayers) {
+            console.log("-----------> " + utils.getTimeInUint32());
+            console.log(defPlayers);
+        }));
+    });
 
     MM.getOpponent(t, session.uid, function (err, users) {
         if (err) {
@@ -96,13 +79,10 @@ pro.sync = function (msg, session, next) {
 };
 
 
+pro.time = function (msg, session, next) {
+    var t = utils.getTimeInUint32();
 
-pro.time = function(msg, session, next) {
-//    var startTime = new Date().getTime();
-//    while(new Date().getTime()<startTime+500);
+    msg['sTime'] = t;
+    next(null, msg);
 
-    utils.getTimeInUint32(function(t){
-        msg['sTime'] = t;
-        next(null, msg);
-    });
 }
