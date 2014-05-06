@@ -9,5 +9,9 @@
         "required uInt32 ballPosPlayerId" : 2,
         "required uInt32 timeStamp" : 3,
         "repeated float teamPos" : 4
+    },
+
+    "match.matchHandler.menuCmd": {
+        "required int32 cmd" : 1
     }
 }

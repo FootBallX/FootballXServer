@@ -3,6 +3,7 @@ var userDao = require('../../../dao/userDao');
 var Code = require('../../../shared/code');
 var MM = require('../../../gameobject/matchManager');
 var utils = require('../../../util/utils');
+var schedule = require('../../../../node_modules/pomelo/node_modules/pomelo-scheduler/lib/schedule');
 
 module.exports = function (app) {
     return new Handler(app);
@@ -11,8 +12,56 @@ module.exports = function (app) {
 var Handler = function (app) {
     this.app = app;
     this.cs = app.get('channelService');
+
+    var trigger = {
+        period : 1000
+    };
+
+    var callbacks = {
+        triggerMenu:onTriggerMenu.bind(this),
+        startMatch:onStartMatch.bind(this)
+    };
+
+    schedule.scheduleJob(trigger, triggerUpdate, callbacks);
 };
 
+
+var triggerUpdate = function(callbacks) {
+    MM.update(callbacks);
+}
+
+var onStartMatch = function(users, kickSide, startTime) {
+    this.cs.pushMessageByUids("startMatch", {left: users[0].uid, right: users[1].uid, kickOffSide: kickSide, startTime: startTime}, users, function (err) {
+        if (err) {
+            console.log("err: ");
+            console.log(err);
+        }
+    });
+}
+
+// user     玩家uid
+// menuType 菜单类型
+// playerNumbers    数组，参与的球员号码
+var onTriggerMenu = function(user1, user2, attackPlayerNumbers, defendPlayerNumbers) {
+    var self = this;
+    var msg1 =  {menuType:user1.menuType, attackPlayers:attackPlayerNumbers, defendplayers:defendPlayerNumbers};
+    console.log(msg1);
+    self.cs.pushMessageByUids("triggerMenu", msg1, [user1], function(err){
+        if (err) {
+            console.log("err: ");
+            console.log(err);
+        }
+    });
+
+    var msg2 =  {menuType:user2.menuType, attackPlayers:attackPlayerNumbers, defendplayers:defendPlayerNumbers};
+    console.log(msg2);
+    self.cs.pushMessageByUids("triggerMenu", msg2, [user2], function(err){
+        if (err) {
+            console.log("err: ");
+            console.log(err);
+        }
+    });
+}
 
 var pro = Handler.prototype;
 
@@ -21,7 +70,7 @@ pro.ready = function (msg, session, next) {
     var self = this;
     var t = session.get('matchToken');
 
-    MM.ready(t, session.uid, function (err, start, users, kickSide, startTime) {
+    MM.ready(t, session.uid, function (err) {
 
         if (err) {
             next(null, {code: Code.FAIL});
@@ -29,17 +78,9 @@ pro.ready = function (msg, session, next) {
         }
 
         next(null, {code: Code.OK});
-
-        if (start) {
-            self.cs.pushMessageByUids("startMatch", {code: Code.OK, left: users[0].uid, right: users[1].uid, kickOffSide: kickSide, startTime: startTime}, users, function (err) {
-                if (err) {
-                    console.log("err: ");
-                    console.log(err);
-                }
-            });
-        }
     });
 };
+
 
 
 // notify message
@@ -47,36 +88,29 @@ pro.sync = function (msg, session, next) {
     var self = this;
     var t = session.get('matchToken');
 
-    MM.syncPlayerPos(t, session.uid, msg.teamPos, msg.ballPosPlayerId, msg.timeStamp, function (err) {
-        if (err) {
-            console.log(err);
-            return;
-        }
+    MM.syncPlayerPos(t, session.uid, msg.teamPos, msg.ballPosPlayerId, msg.timeStamp);
+    var users = MM.getOpponent(t, session.uid);
+    if (!users) {
+        s.kick(session.uid, null);
+        return;
+    }
 
-        process.nextTick(MM.updateMatch.bind(null, t, function (err, p1, defPlayers) {
-            console.log("-----------> " + utils.getTimeInUint32());
-            console.log(defPlayers);
-        }));
+    self.cs.pushMessageByUids("sync", msg, [users], function (err) {
+        if (err) {
+            console.log("err: ");
+            console.log(err);
+        }
     });
 
-    MM.getOpponent(t, session.uid, function (err, users) {
-        if (err) {
-            console.log('err: ');
-            console.log(err);
-            s.kick(session.uid, null);
-            return;
-        }
-
-        self.cs.pushMessageByUids("sync", msg, users, function (err) {
-            if (err) {
-                console.log("err: ");
-                console.log(err);
-            }
-        });
-    });
 
     next(null);
 };
+
+
+pro.menuCmd = function (msg, session, next) {
+
+    next(null);
+}
 
 
 pro.time = function (msg, session, next) {

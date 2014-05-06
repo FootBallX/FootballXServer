@@ -4,5 +4,11 @@
         "required uInt32 ballPosPlayerId" : 2,
         "required uInt32 timeStamp" : 3,
         "repeated float teamPos" : 4
+    },
+
+    "triggerMenu" : {
+        "required int32 menuType" : 1,
+        "repeated int32 attackPlayers" : 2,
+        "repeated int32 defendplayers" : 3
     }
 }

@@ -1,8 +1,9 @@
 [
     "sync",
     "startMatch",
-    "switchDominator",
+    "triggerMenu",
     "endMatch",
     "connector.entryHandler.login",
-    "gate.gateHandler.queryConnectorEntry"
+    "gate.gateHandler.queryConnectorEntry",
+    "match.matchHandler.menuCmd"
 ]
