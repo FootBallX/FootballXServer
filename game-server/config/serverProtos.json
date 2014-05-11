@@ -10,5 +10,24 @@
         "required int32 menuType" : 1,
         "repeated int32 attackPlayers" : 2,
         "repeated int32 defendplayers" : 3
+    },
+
+    "instructions" : {
+        "repeated int32 atkIns" : 1,
+        "repeated int32 defIns" : 2,
+        "repeated int32 atkRes" : 3,
+        "repeated int32 defRes" : 4
+    },
+
+    "startMatch" : {
+        "message Player" : {
+            "required int32 uid" : 1,
+            "repeated float teamPos" : 2
+        },
+
+        "required Player left" : 1,
+        "required Player right" : 2,
+        "required int32 kickOffSide" : 3,
+        "required uInt32 startTime" : 4
     }
 }

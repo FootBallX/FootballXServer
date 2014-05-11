@@ -42,7 +42,7 @@ exp.checkPair = function(callback)
         p1 = players[arr.pop()];
         p2 = players[arr.pop()];
 
-        utils.invokeCallback(callback, {uid:p1.uid, sid:p1.sid}, {uid:p2.uid, sid:p2.sid});
+        utils.invokeCallback(callback, {uid:p1.uid, sid:p1.sid, players:p1.players}, {uid:p2.uid, sid:p2.sid, players:p2.players});
 
         delete players[p1.uid];
         delete players[p2.uid];

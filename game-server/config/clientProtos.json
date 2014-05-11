@@ -12,6 +12,6 @@
     },
 
     "match.matchHandler.menuCmd": {
-        "required int32 cmd" : 1
+        "repeated uInt32 cmds" : 1
     }
 }

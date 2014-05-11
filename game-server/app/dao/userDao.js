@@ -223,3 +223,19 @@ userDao.clearHomeBuildings = function (pid, callback) {
     });
 };
 
+//获取上场球员属性
+userDao.getCardsOnDuty = function(pid, callback) {
+    var dbc = pomelo.app.get('dbclient');
+
+    var sql = 'call getCardsOnDuty(?)';
+    var args = [pid]
+
+    dbc.query(sql, args, function(err, res) {
+        if (err) {
+            utils.invokeCallback(callback, err);
+        }
+        else {
+            utils.invokeCallback(callback, null, res[0]);
+        }
+    });
+}

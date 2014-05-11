@@ -71,14 +71,27 @@ var onPairSuccess = function (user1, user2) {
 var pro = Handler.prototype;
 
 pro.signUp = function (msg, session, next) {
+    var self = this;
     var uid = session.uid;
     var pid = session.settings.playerId;
     var sid = session.frontendId;
-    LM.addPlayer({uid: uid, pid: pid, sid: sid});
 
-    process.nextTick(LM.checkPair.bind(null, onPairSuccess.bind(this)));
+    userDao.getCardsOnDuty(pid, function(err, res) {
+        if (err || res.length != 11){
+            next(null, {code: Code.LEAGUE.FA_FORMATION_ERR});
+        }
+        else {
+            for (var i = 0 ; i < res.length; ++i)
+            {
+                res[i]['position'] = {x:0, y:0};
+            }
 
-    next(null, {code: Code.OK});
+            LM.addPlayer({uid: uid, pid: pid, sid: sid, players:res});
+            process.nextTick(LM.checkPair.bind(null, onPairSuccess.bind(self)));
+            next(null, {code: Code.OK});
+        }
+    });
+
 };
 
 

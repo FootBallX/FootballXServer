@@ -12,6 +12,7 @@ module.exports = function (app) {
 var Handler = function (app) {
     this.app = app;
     this.cs = app.get('channelService');
+    MM.init();
 
     var trigger = {
         period : 1000
@@ -19,7 +20,8 @@ var Handler = function (app) {
 
     var callbacks = {
         triggerMenu:onTriggerMenu.bind(this),
-        startMatch:onStartMatch.bind(this)
+        startMatch:onStartMatch.bind(this),
+        sendInstructions:onSendInstructions.bind(this)
     };
 
     schedule.scheduleJob(trigger, triggerUpdate, callbacks);
@@ -30,8 +32,8 @@ var triggerUpdate = function(callbacks) {
     MM.update(callbacks);
 }
 
-var onStartMatch = function(users, kickSide, startTime) {
-    this.cs.pushMessageByUids("startMatch", {left: users[0].uid, right: users[1].uid, kickOffSide: kickSide, startTime: startTime}, users, function (err) {
+var onStartMatch = function(users, left, right, kickSide, startTime) {
+    this.cs.pushMessageByUids("startMatch", {left: left, right: right, kickOffSide: kickSide, startTime: startTime}, users, function (err) {
         if (err) {
             console.log("err: ");
             console.log(err);
@@ -44,7 +46,7 @@ var onStartMatch = function(users, kickSide, startTime) {
 // playerNumbers    数组，参与的球员号码
 var onTriggerMenu = function(user1, user2, attackPlayerNumbers, defendPlayerNumbers) {
     var self = this;
-    var msg1 =  {menuType:user1.menuType, attackPlayers:attackPlayerNumbers, defendplayers:defendPlayerNumbers};
+    var msg1 =  {menuType:user1.info.encounter.menuType, attackPlayers:attackPlayerNumbers, defendplayers:defendPlayerNumbers};
     console.log(msg1);
     self.cs.pushMessageByUids("triggerMenu", msg1, [user1], function(err){
         if (err) {
@@ -53,7 +55,7 @@ var onTriggerMenu = function(user1, user2, attackPlayerNumbers, defendPlayerNumb
         }
     });
 
-    var msg2 =  {menuType:user2.menuType, attackPlayers:attackPlayerNumbers, defendplayers:defendPlayerNumbers};
+    var msg2 =  {menuType:user2.info.encounter.menuType, attackPlayers:attackPlayerNumbers, defendplayers:defendPlayerNumbers};
     console.log(msg2);
     self.cs.pushMessageByUids("triggerMenu", msg2, [user2], function(err){
         if (err) {
@@ -62,6 +64,21 @@ var onTriggerMenu = function(user1, user2, attackPlayerNumbers, defendPlayerNumb
         }
     });
 }
+
+
+var onSendInstructions = function(users, atkIns, defIns) {
+    var self = this;
+
+    var msg = {atkIns:atkIns.instructions, atkRes:atkIns.instructionResults, defIns:defIns.instructions, defRes:defIns.instructionResults};
+    self.cs.pushMessageByUids("instructions", msg, users, function(err) {
+        if (err) {
+            console.log("err: ");
+            console.log(err);
+        }
+    });
+}
+
+
 
 var pro = Handler.prototype;
 
@@ -108,8 +125,9 @@ pro.sync = function (msg, session, next) {
 
 
 pro.menuCmd = function (msg, session, next) {
-
-    next(null);
+    MM.menuCmd(msg.cmds, function(err){
+       next(null);
+    });
 }
 
 

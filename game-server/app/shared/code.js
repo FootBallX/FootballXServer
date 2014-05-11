@@ -38,5 +38,9 @@ module.exports = {
             FA_REMOVE_WRONG_PARAM : 10004,
             FA_MOVE_NO_SPACE : 10005
 		}
-	}
+	},
+
+    LEAGUE: {
+        FA_FORMATION_ERR: 6001
+    }
 };
