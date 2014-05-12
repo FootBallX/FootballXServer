@@ -459,6 +459,7 @@ exp.syncPlayerPos = function (token, uid, teamPos, ballPos, timeStamp) {
 // targetPlayer只在进攻方传球时用，用于标识接球队员编号
 exp.menuCmd = function(token, uid, cmds, targetPlayer, callback) {
     var mc = matchs[token];
+    console.log(mc);
     var p;
     var attack = false;
     if (mc.p[0].uid == uid) {
@@ -474,21 +475,10 @@ exp.menuCmd = function(token, uid, cmds, targetPlayer, callback) {
         }
     }
 
-    if (attack)
+    if (p.encounter.involePlayers.length != cmds.length)
     {
-        if (cmds.length != 1)
-        {
-            utils.invokeCallback(callback, new Error('attacker has a wrong number of cmds! (1 cmd is expected)'));
-            return;
-        }
-    }
-    else
-    {
-        if (cmds.length != mc.defplayer.length)
-        {
-            utils.invokeCallback(callback, new Error('defender has a wrong number of cmds! (' + mc.defplayer.length + ' cmd(s) are expected)'));
-            return;
-        }
+        utils.invokeCallback(callback, new Error('attacker has a wrong number of cmds! (1 cmd is expected)'));
+        return;
     }
 
     p.encounter.instructions = cmds;

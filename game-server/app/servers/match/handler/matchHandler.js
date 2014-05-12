@@ -125,7 +125,9 @@ pro.sync = function (msg, session, next) {
 
 
 pro.menuCmd = function (msg, session, next) {
-    MM.menuCmd(msg.cmds, function(err){
+    var t = session.get('matchToken');
+
+    MM.menuCmd(t, session.uid, msg.cmds, null, function(err){
        next(null);
     });
 }
