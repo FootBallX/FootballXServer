@@ -29,13 +29,13 @@ function Log(s) {
 // type     司职
 // strength 体力
 // speed    速度
-// dribble  盘带
-// pass     传球
-// shoot    射门
-// defence  防守
-// attack   出击
-// ground   地面
-// air      空中
+// dribbleSkill  盘带
+// passSkill     传球
+// shootSkill    射门
+// defenceSkill  防守
+// attackSkill   出击
+// groundSkill   地面
+// airSkill      空中
 
 var RET_FAIL = 0;
 var RET_SUCCESS = 1;
@@ -127,6 +127,16 @@ function StartPassBall(o1, isAir) {
     return;
 }
 
+
+function StartDribble(o1) {
+
+}
+
+function StartOneTwo(o1) {
+
+}
+
+
 //获得球
 
 function ReceiveBall(o1) {
@@ -148,7 +158,7 @@ function TackleBall(o1, o2) {
     switch (g_type) {
         case 0: //铲球vs传球
         {
-            var v = Rand() % 1000 + (o1.pass + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_1 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_1 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_chanqiu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -168,7 +178,7 @@ function TackleBall(o1, o2) {
 
         case 1: //铲球vs射门
         {
-            var v = Rand() % 1000 + (o1.shoot + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_10 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_10 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_chanqiu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -188,7 +198,7 @@ function TackleBall(o1, o2) {
 
         case 2: //铲球vs盘带
         {
-            var v = Rand() % 1000 + (o1.dribble + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_4;
+            var v = Rand() % 1000 + (o1.dribbleSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_4;
             if (v >= g_WinParam_1) {
                 PlayAnimation("ground_chanqiu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -204,7 +214,7 @@ function TackleBall(o1, o2) {
 
         case 3: //铲球vs二过一
         {
-            var v = Rand() % 1000 + (o1.pass + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_7 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_7 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_chanqiu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -230,7 +240,7 @@ function InterceptBall(o1, o2) {
     switch (g_type) {
         case 0: //拦截vs传球
         {
-            var v = Rand() % 1000 + (o1.pass + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_2 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_2 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_lanjie_failed.ccbi", 0);
                 return RET_FAIL;
@@ -250,7 +260,7 @@ function InterceptBall(o1, o2) {
 
         case 1: //拦截vs射门
         {
-            var v = Rand() % 1000 + (o1.shoot + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_11 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_11 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_lanjie_failed.ccbi", 0);
                 return RET_FAIL;
@@ -270,7 +280,7 @@ function InterceptBall(o1, o2) {
 
         case 2: //拦截vs盘带
         {
-            var v = Rand() % 1000 + (o1.dribble + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_5;
+            var v = Rand() % 1000 + (o1.dribbleSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_5;
             if (v >= g_WinParam_1) {
                 PlayAnimation("ground_lanjie_failed.ccbi", 0);
                 return RET_FAIL;
@@ -287,7 +297,7 @@ function InterceptBall(o1, o2) {
 
         case 3: //拦截vs二过一
         {
-            var v = Rand() % 1000 + (o1.pass + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_8 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_8 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_lanjie_failed.ccbi", 0);
                 return RET_FAIL;
@@ -308,7 +318,7 @@ function InterceptBall(o1, o2) {
 
         // case 4 :    //空中传球vs拦截
         // PlayAnimation ("ground_paowei.ccbi", 0);
-        // var v = Rand() % 1000 + ( o1.pass + o2.air ) - ( o2.defence + o2.air ) + g_OrderParam_2 + g_ballSpeed;
+        // var v = Rand() % 1000 + ( o1.passSkill + o2.airSkill ) - ( o2.defenceSkill + o2.airSkill ) + g_OrderParam_2 + g_ballSpeed;
 
     }
 }
@@ -319,7 +329,7 @@ function BlockBall(o1, o2) {
     switch (g_type) {
         case 0: //封堵vs传球
         {
-            var v = Rand() % 1000 + (o1.pass + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_3 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_3 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_fengdu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -339,7 +349,7 @@ function BlockBall(o1, o2) {
 
         case 1: //封堵vs射门
         {
-            var v = Rand() % 1000 + (o1.shoot + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_12 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_12 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_fengdu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -359,7 +369,7 @@ function BlockBall(o1, o2) {
 
         case 2: //封堵vs盘带
         {
-            var v = Rand() % 1000 + (o1.dribble + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_6;
+            var v = Rand() % 1000 + (o1.dribbleSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_6;
             if (v >= g_WinParam_1) {
                 PlayAnimation("ground_fengdu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -375,7 +385,7 @@ function BlockBall(o1, o2) {
 
         case 3: //封堵vs二过一
         {
-            var v = Rand() % 1000 + (o1.pass + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_9 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_9 + g_ballSpeed;
             if (v >= g_WinParam_2) {
                 PlayAnimation("ground_fengdu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -416,7 +426,7 @@ function CatchBallGP(o1, o2) {
     switch (g_type) {
         case 1: //地面射门vs接球
         {
-            var v = Rand() % 1000 + (o1.shoot + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_29 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_29 + g_ballSpeed;
             if (v >= g_WinParam_1) {
                 PlayAnimation("keeper_woqiu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -433,7 +443,7 @@ function CatchBallGP(o1, o2) {
 
         case 5: //空中射门vs接球
         {
-            var v = Rand() % 1000 + (o1.shoot + o1.air) - (o2.defence + o2.air) + g_OrderParam_29 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.shootSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_29 + g_ballSpeed;
             if (v >= g_WinParam_1) {
                 PlayAnimation("keeper_woqiu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -456,7 +466,7 @@ function HitBallGP(o1, o2) {
     switch (g_type) {
         case 1: //地面射门vs击球
         {
-            var v = Rand() % 1000 + (o1.shoot + o1.ground) - (o2.defence + o2.ground) + g_OrderParam_30 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_30 + g_ballSpeed;
             if (v >= g_WinParam_1) {
                 PlayAnimation("keeper_jiqiu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -473,7 +483,7 @@ function HitBallGP(o1, o2) {
 
         case 5: //空中射门vs击球
         {
-            var v = Rand() % 1000 + (o1.shoot + o1.air) - (o2.defence + o2.air) + g_OrderParam_30 + g_ballSpeed;
+            var v = Rand() % 1000 + (o1.shootSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_30 + g_ballSpeed;
             if (v >= g_WinParam_1) {
                 PlayAnimation("keeper_jiqiu_failed.ccbi", 0);
                 return RET_FAIL;
@@ -496,8 +506,8 @@ function HitBallGP(o1, o2) {
 module.exports = {
     MENU_FUNCS: [
         StartPassBall,          // 0
-        undefined,              // 1
-        undefined,              // 2
+        StartDribble,              // 1
+        StartOneTwo,              // 2
         StartShootBall,         // 3
         TackleBall,             // 4
         InterceptBall,          // 5

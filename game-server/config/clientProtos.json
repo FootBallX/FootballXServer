@@ -12,6 +12,7 @@
     },
 
     "match.matchHandler.menuCmd": {
-        "repeated uInt32 cmds" : 1
+        "required uInt32 cmd" : 1,
+        "optional uInt32 targetPlayerId" : 2
     }
 }

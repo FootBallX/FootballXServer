@@ -66,11 +66,10 @@ var onTriggerMenu = function(user1, user2, attackPlayerNumbers, defendPlayerNumb
 }
 
 
-var onSendInstructions = function(users, atkIns, defIns) {
+var onSendInstructions = function(users, ins) {
     var self = this;
 
-    var msg = {atkIns:atkIns.instructions, atkRes:atkIns.instructionResults, defIns:defIns.instructions, defRes:defIns.instructionResults};
-    self.cs.pushMessageByUids("instructions", msg, users, function(err) {
+    self.cs.pushMessageByUids("instructions", ins, users, function(err) {
         if (err) {
             console.log("err: ");
             console.log(err);
@@ -126,9 +125,13 @@ pro.sync = function (msg, session, next) {
 
 pro.menuCmd = function (msg, session, next) {
     var t = session.get('matchToken');
-
-    MM.menuCmd(t, session.uid, msg.cmds, null, function(err){
-       next(null);
+    var target = null;
+    if (msg.targetPlayerId)
+    {
+        target = msg.targetPayerId;
+    }
+    MM.menuCmd(t, session.uid, msg.cmd, target, function(err, countDown){
+       next(null, {countDown:countDown});
     });
 }
 

@@ -13,10 +13,18 @@
     },
 
     "instructions" : {
-        "repeated int32 atkIns" : 1,
-        "repeated int32 defIns" : 2,
-        "repeated int32 atkRes" : 3,
-        "repeated int32 defRes" : 4
+        "message InsStructure" : {
+            "required int32 side" : 1,
+            "required int32 playerNumber" : 2,
+            "required int32 ins" : 3
+        },
+
+        "repeated InsStructure instructions" : 1,
+        "required int32 result" : 2,
+        "required int32 ballSide" : 3,
+        "required int32 playerNumber" : 4,
+        "required float ballPosX" : 5,
+        "required float ballPosY" : 6
     },
 
     "startMatch" : {
@@ -29,5 +37,9 @@
         "required Player right" : 2,
         "required int32 kickOffSide" : 3,
         "required uInt32 startTime" : 4
+    },
+
+    "match.matchHandler.menuCmd" : {
+        "required uInt32 countDown" : 1
     }
 }

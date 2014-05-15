@@ -1,6 +1,8 @@
 var mi = require('./matchMenuItem');
 
 module.exports = {
+    INSTRUCTION_WAIT_TIME:10000,         // 10 seconds
+
     MENU_TYPE_INSTRUCTIONS: [
         [mi.MENU_ITEM.Dribble, mi.MENU_ITEM.Pass, mi.MENU_ITEM.Shoot, mi.MENU_ITEM.OneTwo],     // 0
         [mi.MENU_ITEM.Dribble, mi.MENU_ITEM.Pass, mi.MENU_ITEM.Shoot, mi.MENU_ITEM.OneTwo],     // 1
