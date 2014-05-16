@@ -97,5 +97,15 @@ utils.getRandom = function(range) {
     return r % range;
 }
 
+utils.arrayContains = function (arr, item) {
+    for (var i = 0; i < arr.length; ++i) {
+        if (arr[i] === item) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // print the file name and the line number ~ end
 

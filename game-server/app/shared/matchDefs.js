@@ -45,6 +45,11 @@ module.exports = {
         Height : 650
     },
 
+    RandomBallRange : {
+        width : 80,
+        height : 80
+    },
+
     FormationInitPosition: [
         [
             // 442

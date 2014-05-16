@@ -1,9 +1,5 @@
 var utils = require('../util/utils');
-
-
-function PlayAnimation(ccb, delay) {
-
-}
+var aniDef = require('./aniDefs');
 
 
 function Rand() {
@@ -39,7 +35,8 @@ function Log(s) {
 
 var RET_FAIL = 0;
 var RET_SUCCESS = 1;
-var RET_RANDOM_BALL = 2;
+var RET_REDUCE = 2;
+var RET_RANDOM_BALL = 3;
 
 var g_ballSpeed = 0; //球减速修正,需要在适当的时候初始化
 var g_isAir = false;
@@ -106,6 +103,15 @@ var g_RandomParam_2 = 500; //有减速，随机球
 var g_ReducedParam_2 = 250; //有减速，减速
 var g_ReducedParam = 100; //减速修正
 
+var g_Animations = [];
+
+
+function PlayAnimation(ccb, delay) {
+    g_Animations.push({animId:ccb, delay:delay});
+}
+
+
+
 
 function GetSpeed(o1) {
     var spd = o1.speed;
@@ -115,12 +121,13 @@ function GetSpeed(o1) {
 //传球
 
 function StartPassBall(o1, isAir) {
+    g_Animations = [];
     if (g_isAir) {
-        PlayAnimation("air_chuanqiu.ccbi", 0);
+        PlayAnimation(aniDef.Animations.air_chuanqiu_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 4;
     } else {
-        PlayAnimation("ground_chuanqiu.ccbi", 0);
+        PlayAnimation(aniDef.Animations.ground_chuanqiu_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 0;
     }
@@ -129,11 +136,11 @@ function StartPassBall(o1, isAir) {
 
 
 function StartDribble(o1) {
-
+    g_Animations = [];
 }
 
 function StartOneTwo(o1) {
-
+    g_Animations = [];
 }
 
 
@@ -141,11 +148,11 @@ function StartOneTwo(o1) {
 
 function ReceiveBall(o1) {
     if (g_isAir) {
-        PlayAnimation("air_tingqiu.ccbi", 0);
+        PlayAnimation(aniDef.Animations.air_tingqiu_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 0;
     } else {
-        PlayAnimation("ground_tingqiu.ccbi", 0);
+        PlayAnimation(aniDef.Animations.ground_tingqiu_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 0;
     }
@@ -160,17 +167,17 @@ function TackleBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_1 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_chanqiu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_chanqiu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_chanqiu_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_chanqiu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -180,17 +187,17 @@ function TackleBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_10 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_chanqiu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_chanqiu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_chanqiu_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_chanqiu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -200,13 +207,13 @@ function TackleBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.dribbleSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_4;
             if (v >= g_WinParam_1) {
-                PlayAnimation("ground_chanqiu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_1) {
-                PlayAnimation("ground_chanqiu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else {
-                PlayAnimation("ground_chanqiu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -216,17 +223,17 @@ function TackleBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_7 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_chanqiu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_chanqiu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_chanqiu_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_chanqiu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_chanqiu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -242,17 +249,17 @@ function InterceptBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_2 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_lanjie_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_lanjie_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_lanjie_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_lanjie_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -262,17 +269,17 @@ function InterceptBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_11 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_lanjie_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_lanjie_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_lanjie_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_lanjie_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -282,13 +289,13 @@ function InterceptBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.dribbleSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_5;
             if (v >= g_WinParam_1) {
-                PlayAnimation("ground_lanjie_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_1) {
-                PlayAnimation("ground_lanjie_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else {
-                PlayAnimation("ground_lanjie_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -299,17 +306,17 @@ function InterceptBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_8 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_lanjie_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_lanjie_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_lanjie_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_lanjie_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_lanjie_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -317,7 +324,7 @@ function InterceptBall(o1, o2) {
 
 
         // case 4 :    //空中传球vs拦截
-        // PlayAnimation ("ground_paowei.ccbi", 0);
+        // PlayAnimation (aniDef.Animations.ground_paowei_ccbi, 0);
         // var v = Rand() % 1000 + ( o1.passSkill + o2.airSkill ) - ( o2.defenceSkill + o2.airSkill ) + g_OrderParam_2 + g_ballSpeed;
 
     }
@@ -331,17 +338,17 @@ function BlockBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_3 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_fengdu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_fengdu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_fengdu_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_fengdu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -351,17 +358,17 @@ function BlockBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_12 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_fengdu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_fengdu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_fengdu_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_fengdu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -371,13 +378,13 @@ function BlockBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.dribbleSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_6;
             if (v >= g_WinParam_1) {
-                PlayAnimation("ground_fengdu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_1) {
-                PlayAnimation("ground_fengdu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else {
-                PlayAnimation("ground_fengdu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -387,17 +394,17 @@ function BlockBall(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_9 + g_ballSpeed;
             if (v >= g_WinParam_2) {
-                PlayAnimation("ground_fengdu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_failed_ccbi, 0);
                 return RET_FAIL;
             } else if (v >= g_RandomParam_2) {
-                PlayAnimation("ground_fengdu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else if (v >= g_ReducedParam_2) {
-                PlayAnimation("ground_fengdu_reduced.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_reduced_ccbi, 0);
                 g_ballSpeed += g_ReducedParam;
-                return RET_FAIL;
+                return RET_REDUCE;
             } else {
-                PlayAnimation("ground_fengdu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.ground_fengdu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -408,12 +415,14 @@ function BlockBall(o1, o2) {
 //开始射门
 
 function StartShootBall(o1, isAir) {
+    g_Animations = [];
+
     if (g_isAir) {
-        PlayAnimation("air_shemen.ccbi", 0);
+        PlayAnimation(aniDef.Animations.air_shemen_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 5;
     } else {
-        PlayAnimation("ground_shemen.ccbi", 0);
+        PlayAnimation(aniDef.Animations.ground_shemen_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 1;
     }
@@ -428,14 +437,14 @@ function CatchBallGP(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_29 + g_ballSpeed;
             if (v >= g_WinParam_1) {
-                PlayAnimation("keeper_woqiu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_woqiu_failed_ccbi, 0);
                 return RET_FAIL;
             }
             if (v >= g_RandomParam_1) {
-                PlayAnimation("keeper_woqiu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_woqiu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else {
-                PlayAnimation("keeper_woqiu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_woqiu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -445,14 +454,14 @@ function CatchBallGP(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.shootSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_29 + g_ballSpeed;
             if (v >= g_WinParam_1) {
-                PlayAnimation("keeper_woqiu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_woqiu_failed_ccbi, 0);
                 return RET_FAIL;
             }
             if (v >= g_RandomParam_1) {
-                PlayAnimation("keeper_woqiu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_woqiu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else {
-                PlayAnimation("keeper_woqiu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_woqiu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -468,14 +477,14 @@ function HitBallGP(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_30 + g_ballSpeed;
             if (v >= g_WinParam_1) {
-                PlayAnimation("keeper_jiqiu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_jiqiu_failed_ccbi, 0);
                 return RET_FAIL;
             }
             if (v >= g_RandomParam_1) {
-                PlayAnimation("keeper_jiqiu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_jiqiu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else {
-                PlayAnimation("keeper_jiqiu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_jiqiu_success_ccbi, 0);
                 return RET_RANDOM_BALL;
             }
             break;
@@ -485,14 +494,14 @@ function HitBallGP(o1, o2) {
         {
             var v = Rand() % 1000 + (o1.shootSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_30 + g_ballSpeed;
             if (v >= g_WinParam_1) {
-                PlayAnimation("keeper_jiqiu_failed.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_jiqiu_failed_ccbi, 0);
                 return RET_FAIL;
             }
             if (v >= g_RandomParam_1) {
-                PlayAnimation("keeper_jiqiu_randomball.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_jiqiu_randomball_ccbi, 0);
                 return RET_RANDOM_BALL;
             } else {
-                PlayAnimation("keeper_jiqiu_success.ccbi", 0);
+                PlayAnimation(aniDef.Animations.keeper_jiqiu_success_ccbi, 0);
                 return RET_RANDOM_BALL;
             }
             break;
@@ -504,6 +513,13 @@ function HitBallGP(o1, o2) {
 // AUTO_GEN_CODE_END
 
 module.exports = {
+    CLEAR_ANIMATIONS : function() {
+        g_Animations = [];
+    },
+    GET_ANIMATIONS : function() {
+        return g_Animations;
+    },
+
     MENU_FUNCS: [
         StartPassBall,          // 0
         StartDribble,              // 1
@@ -542,7 +558,8 @@ module.exports = {
     MENU_ITEM_RETURN_CODE: {
         RET_FAIL: RET_FAIL,
         RET_SUCCESS: RET_SUCCESS,
+        RET_REDUCE: RET_REDUCE,
         RET_RANDOM_BALL: RET_RANDOM_BALL
-    },
+    }
 
 }

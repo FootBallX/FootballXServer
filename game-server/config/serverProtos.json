@@ -14,17 +14,23 @@
 
     "instructions" : {
         "message InsStructure" : {
+            "message Animation" : {
+                "required int32 animId" : 1,
+                "required float delay" : 2
+            },
+
             "required int32 side" : 1,
             "required int32 playerNumber" : 2,
-            "required int32 ins" : 3
+            "required int32 ins" : 3,
+            "required int32 result" : 4,
+            "repeated Animation animations" : 5
         },
 
         "repeated InsStructure instructions" : 1,
-        "required int32 result" : 2,
-        "required int32 ballSide" : 3,
-        "required int32 playerNumber" : 4,
-        "required float ballPosX" : 5,
-        "required float ballPosY" : 6
+        "required int32 ballSide" : 2,
+        "required int32 playerNumber" : 3,
+        "required float ballPosX" : 4,
+        "required float ballPosY" : 5
     },
 
     "startMatch" : {
