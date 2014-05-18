@@ -50,34 +50,35 @@ module.exports = {
         height : 80
     },
 
+    // AICLass -> 0 Goalkeeper, 1 Back, 2 HalfBack, 3 Forward.
     FormationInitPosition: [
         [
             // 442
-            {x: 25, y: 325},
-            {x: 140, y: 120},
-            {x: 140, y: 222.5},
-            {x: 140, y: 427.5},
-            {x: 140, y: 530},
-            {x: 300, y: 120},
-            {x: 300, y: 222.5},
-            {x: 300, y: 427.5},
-            {x: 300, y: 530},
-            {x: 440, y: 260},
-            {x: 500, y: 330}
+            {Position : {x: 25, y: 325},   HomePosition : {x: 0, y: 325},      AIClass: 0},
+            {Position : {x:140, y: 120},   HomePosition : {x: 0, y: 120},      AIClass: 1},
+            {Position : {x:140, y: 222.5}, HomePosition : {x: 0, y: 222.5},    AIClass: 1},
+            {Position : {x:140, y: 427.5}, HomePosition : {x: 0, y: 427.5},    AIClass: 1},
+            {Position : {x:140, y: 530},   HomePosition : {x: 0, y: 530},      AIClass: 1},
+            {Position : {x:300, y: 120},   HomePosition : {x: 0, y: 120},      AIClass: 2},
+            {Position : {x:300, y: 222.5}, HomePosition : {x: 0, y: 222.5},    AIClass: 2},
+            {Position : {x:300, y: 427.5}, HomePosition : {x: 0, y: 427.5},    AIClass: 2},
+            {Position : {x:300, y: 530},   HomePosition : {x: 0, y: 530},      AIClass: 2},
+            {Position : {x:440, y: 260},   HomePosition : {x: 0, y: 260},      AIClass: 3},
+            {Position : {x:500, y: 330},   HomePosition : {x: 0, y: 330},      AIClass: 3}
         ],
         [
             // 3232
-            {x: 25, y: 325},
-            {x: 140, y: 190},
-            {x: 140, y: 325},
-            {x: 140, y: 460},
-            {x: 240, y: 230},
-            {x: 240, y: 420},
-            {x: 340, y: 190},
-            {x: 340, y: 325},
-            {x: 340, y: 460},
-            {x: 440, y: 260},
-            {x: 500, y: 330}
+            {Position : {x: 25, y: 325},   HomePosition : {x: 0,   y: 325},    AIClass: 0},
+            {Position : {x:140, y: 190},   HomePosition : {x: 0,   y: 190},    AIClass: 1},
+            {Position : {x:140, y: 325},   HomePosition : {x: 0,   y: 325},    AIClass: 1},
+            {Position : {x:140, y: 460},   HomePosition : {x: 0,   y: 460},    AIClass: 1},
+            {Position : {x:240, y: 230},   HomePosition : {x: -50, y: 230},    AIClass: 2},
+            {Position : {x:240, y: 420},   HomePosition : {x: -50, y: 420},    AIClass: 2},
+            {Position : {x:340, y: 190},   HomePosition : {x: 50,  y: 190},    AIClass: 2},
+            {Position : {x:340, y: 325},   HomePosition : {x: 50,  y: 325},    AIClass: 2},
+            {Position : {x:340, y: 460},   HomePosition : {x: 50,  y: 460},    AIClass: 2},
+            {Position : {x:440, y: 260},   HomePosition : {x: 0,   y: 260},    AIClass: 3},
+            {Position : {x:500, y: 330},   HomePosition : {x: 0,   y: 330},    AIClass: 3}
         ]
     ],
 

@@ -84,6 +84,8 @@ pro.signUp = function (msg, session, next) {
             for (var i = 0 ; i < res.length; ++i)
             {
                 res[i]['position'] = {x:0, y:0};
+                res[i]['homePosition'] = {x:0, y:0};
+                res[i]['aiClass'] = 0;
             }
 
             LM.addPlayer({uid: uid, pid: pid, sid: sid, players:res});

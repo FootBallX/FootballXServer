@@ -211,7 +211,7 @@ var getRandomBallTargets = function(mc)
 }
 
 
-var processInstructions = function (mc, callback) {
+var processInstructions = function (mc, callbacks) {
     var p = mc.p[mc.attackSide].info;
     var op = mc.p[getOtherSide(mc.attackSide)].info;
 
@@ -299,10 +299,10 @@ var processInstructions = function (mc, callback) {
     mc.ball = ins.playerNumber;
 
     console.log('instrunction done!!!!!!!!!!!!!')
-    console.log(ins);
 
     // 发送给客户端
-    utils.invokeCallback(callback, mc.p, ins);
+    utils.invokeCallback(callbacks.sendInstructions, mc.p, ins);
+    process.nextTick(syncAllTeamStates.bind(null, mc, callbacks.syncTeam));
 
     // 发送完毕后清空服务器指令状态
     p.encounter.instructions = [];
@@ -312,20 +312,41 @@ var processInstructions = function (mc, callback) {
     mc.state = matchDefs.MATCH_STATE.WaitInstructionMovieEnd;
 }
 
-var updateMatch = function (dt, mc, callbacks) {
 
+var syncAllTeamStates = function(mc, callback)
+{
+    for (var i = 0; i < mc.p.length; ++i) {
+        var msg = {
+            side: i,
+            ballPosPlayerId: (i == mc.attackSide ? mc.ball : -1),
+            timeStamp: 0,
+            teamPos: []
+        };
+        var players = mc.p[i].info.players;
+        for (var j = 0; j < players.length; ++j) {
+            msg.teamPos.push(players[j].position.x)
+            msg.teamPos.push(players[j].position.y);
+            msg.teamPos.push(0);
+            msg.teamPos.push(0);
+        }
+
+        utils.invokeCallback(callback, msg, mc.p);
+    }
+}
+
+var updateMatch = function (dt, mc, callbacks) {
     if (mc.state == matchDefs.MATCH_STATE.WaitInstruction) {
         mc.waitInstructionTime -= dt;
         if (mc.waitInstructionTime > 0) {
             if (checkInstructions(mc)) {
                 console.log("checked    -----");
-                processInstructions(mc, callbacks.sendInstructions);
+                processInstructions(mc, callbacks);
             }
         }
         else {
             if (makeRandomInstructions(mc)) {
                 console.log("made    -----");
-                processInstructions(mc, callbacks.sendInstructions);
+                processInstructions(mc, callbacks);
             }
         }
     }
@@ -430,12 +451,20 @@ var initPlayerPositions = function (players, fid, isLeft) {
     for (var i = 0; i < players.length; ++i) {
         var p = players[i];
         if (!!isLeft) {
-            p.position.x = matchDefs.FormationInitPosition[fid][i].x;
-            p.position.y = matchDefs.FormationInitPosition[fid][i].y;
+            var fmt = matchDefs.FormationInitPosition[fid][i];
+            p.position.x = fmt.Position.x;
+            p.position.y = fmt.Position.y;
+            p.homePosition.x = fmt.HomePosition.x;
+            p.homePosition.y = fmt.HomePosition.y;
+            p.aiClass = fmt.AIClass;
         }
         else {
-            p.position.x = matchDefs.Pitch.Width - matchDefs.FormationInitPosition[fid][i].x;
-            p.position.y = matchDefs.FormationInitPosition[fid][i].y;
+            var fmt = matchDefs.FormationInitPosition[fid][i];
+            p.position.x = matchDefs.Pitch.Width - fmt.Position.x;
+            p.position.y = fmt.Position.y;
+            p.homePosition.x = matchDefs.Pitch.Width - fmt.HomePosition.x;
+            p.homePosition.y = fmt.HomePosition.y;
+            p.aiClass = fmt.AIClass;
         }
     }
 }
@@ -470,19 +499,33 @@ var checkMatchStatus = function (dt, mc, callbacks) {
 
             var left = {
                 uid: mc.p[0].uid,
-                teamPos: []
+                teamPos: [],
+                homePos: [],
+                aiClass: []
             }
 
             var right = {
                 uid: mc.p[1].uid,
-                teamPos: []
+                teamPos: [],
+                homePos: [],
+                aiClass: []
             }
 
             for (var i = 0; i < mc.p[0].info.players.length; ++i) {
-                left.teamPos.push(mc.p[0].info.players[i].position.x);
-                left.teamPos.push(mc.p[0].info.players[i].position.y);
-                right.teamPos.push(mc.p[1].info.players[i].position.x);
-                right.teamPos.push(mc.p[1].info.players[i].position.y);
+                var p0 = mc.p[0].info.players[i];
+                var p1 = mc.p[1].info.players[i];
+
+                left.teamPos.push(p0.position.x);
+                left.teamPos.push(p0.position.y);
+                left.homePos.push(p0.homePosition.x);
+                left.homePos.push(p0.homePosition.y);
+                left.aiClass.push(p0.aiClass);
+
+                right.teamPos.push(p1.position.x);
+                right.teamPos.push(p1.position.y);
+                right.homePos.push(p1.homePosition.x);
+                right.homePos.push(p1.homePosition.y);
+                right.aiClass.push(p1.aiClass);
             }
             callbacks.startMatch(mc.p, left, right, k, t);
         }

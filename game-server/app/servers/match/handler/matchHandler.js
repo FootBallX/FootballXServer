@@ -21,7 +21,8 @@ var Handler = function (app) {
     var callbacks = {
         triggerMenu:onTriggerMenu.bind(this),
         startMatch:onStartMatch.bind(this),
-        sendInstructions:onSendInstructions.bind(this)
+        sendInstructions:onSendInstructions.bind(this),
+        syncTeam:onSyncTeam.bind(this)
     };
 
     schedule.scheduleJob(trigger, triggerUpdate, callbacks);
@@ -78,6 +79,17 @@ var onSendInstructions = function(users, ins) {
 }
 
 
+var onSyncTeam = function(msg, users) {
+    var self = this;
+    self.cs.pushMessageByUids("sync", msg, users, function (err) {
+        if (err) {
+            console.log("err: ");
+            console.log(err);
+        }
+    });
+}
+
+
 
 var pro = Handler.prototype;
 
@@ -105,19 +117,27 @@ pro.sync = function (msg, session, next) {
     var t = session.get('matchToken');
 
     MM.syncPlayerPos(t, session.uid, msg.teamPos, msg.ballPosPlayerId, msg.timeStamp);
-    var users = MM.getOpponent(t, session.uid);
-    if (!users) {
+    var user = MM.getOpponent(t, session.uid);
+    if (!user) {
         s.kick(session.uid, null);
         return;
     }
 
-    self.cs.pushMessageByUids("sync", msg, [users], function (err) {
+    self.cs.pushMessageByUids("sync", msg, [user], function (err) {
         if (err) {
             console.log("err: ");
             console.log(err);
         }
     });
 
+//    onSyncTeam(msg, [user]);
+
+    self.cs.pushMessageByUids("sync", msg, [user], function (err) {
+        if (err) {
+            console.log("err: ");
+            console.log(err);
+        }
+    });
 
     next(null);
 };

@@ -5,7 +5,7 @@
     },
 
     "match.matchHandler.sync": {
-        "required uInt32 type" : 1,
+        "required uInt32 side" : 1,
         "required uInt32 ballPosPlayerId" : 2,
         "required uInt32 timeStamp" : 3,
         "repeated float teamPos" : 4

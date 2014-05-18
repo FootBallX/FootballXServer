@@ -1,7 +1,7 @@
 {
     "sync": {
-        "required uInt32 type" : 1,
-        "required uInt32 ballPosPlayerId" : 2,
+        "required int32 side" : 1,
+        "required int32 ballPosPlayerId" : 2,
         "required uInt32 timeStamp" : 3,
         "repeated float teamPos" : 4
     },
@@ -36,7 +36,9 @@
     "startMatch" : {
         "message Player" : {
             "required int32 uid" : 1,
-            "repeated float teamPos" : 2
+            "repeated float teamPos" : 2,
+            "repeated float homePos" : 3,
+            "repeated int32 aiClass" : 4
         },
 
         "required Player left" : 1,
