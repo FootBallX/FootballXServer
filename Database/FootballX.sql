@@ -122,7 +122,7 @@ DROP TABLE IF EXISTS `Player`;
 CREATE TABLE `Player` (
   `pid` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `nickname` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `uid` int(11) NOT NULL,
+  `uid` int(11) unsigned NOT NULL,
   `level` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `money` int(10) unsigned NOT NULL,
   `formationId` tinyint(3) unsigned DEFAULT '0',
@@ -209,6 +209,7 @@ SET character_set_client = utf8;
   `pcId` tinyint NOT NULL,
   `pid` tinyint NOT NULL,
   `icon` tinyint NOT NULL,
+  `quality` tinyint NOT NULL,
   `strength` tinyint NOT NULL,
   `speed` tinyint NOT NULL,
   `dribbleSkill` tinyint NOT NULL,
@@ -242,6 +243,9 @@ DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getCardsOnDuty`(in_pid int)
 BEGIN
 	select 
+		`ondutycards`.`pcId`,
+		`ondutycards`.`icon`,
+		ondutycards.quality,
         `ondutycards`.`strength`,
         `ondutycards`.`speed`,
         `ondutycards`.`dribbleSkill`,
@@ -350,7 +354,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `ondutycards` AS select `playercards`.`pcId` AS `pcId`,`playercards`.`pid` AS `pid`,`cards`.`icon` AS `icon`,((`cards`.`strength` + ((`cardsgrowth`.`strength` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `strength`,((`cards`.`speed` + ((`cardsgrowth`.`speed` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `speed`,((`cards`.`dribbleSkill` + ((`cardsgrowth`.`dribbleSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `dribbleSkill`,((`cards`.`passSkill` + ((`cardsgrowth`.`passSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `passSkill`,((`cards`.`shootSkill` + ((`cardsgrowth`.`shootSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `shootSkill`,((`cards`.`defenceSkill` + ((`cardsgrowth`.`defenceSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `defenceSkill`,((`cards`.`attackSkill` + ((`cardsgrowth`.`attackSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `attackSkill`,((`cards`.`groundSkill` + ((`cardsgrowth`.`groundSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `groundSkill`,((`cards`.`airSkill` + ((`cardsgrowth`.`airSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `airSkill`,`playercards`.`formationId` AS `formationId` from ((`cards` join `playercards`) join `cardsgrowth`) where ((`cards`.`idCards` = `playercards`.`cid`) and (`cards`.`growthId` = `cardsgrowth`.`idGrowth`)) order by `playercards`.`pcId` */;
+/*!50001 VIEW `ondutycards` AS select `playercards`.`pcId` AS `pcId`,`playercards`.`pid` AS `pid`,`cards`.`icon` AS `icon`,`cards`.`quality` AS `quality`,((`cards`.`strength` + ((`cardsgrowth`.`strength` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `strength`,((`cards`.`speed` + ((`cardsgrowth`.`speed` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `speed`,((`cards`.`dribbleSkill` + ((`cardsgrowth`.`dribbleSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `dribbleSkill`,((`cards`.`passSkill` + ((`cardsgrowth`.`passSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `passSkill`,((`cards`.`shootSkill` + ((`cardsgrowth`.`shootSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `shootSkill`,((`cards`.`defenceSkill` + ((`cardsgrowth`.`defenceSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `defenceSkill`,((`cards`.`attackSkill` + ((`cardsgrowth`.`attackSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `attackSkill`,((`cards`.`groundSkill` + ((`cardsgrowth`.`groundSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `groundSkill`,((`cards`.`airSkill` + ((`cardsgrowth`.`airSkill` * `playercards`.`level`) * `cardsgrowth`.`param1`)) + `cardsgrowth`.`param2`) AS `airSkill`,`playercards`.`formationId` AS `formationId` from ((`cards` join `playercards`) join `cardsgrowth`) where ((`cards`.`idCards` = `playercards`.`cid`) and (`cards`.`growthId` = `cardsgrowth`.`idGrowth`)) order by `playercards`.`pcId` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -364,4 +368,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-05-12 23:07:43
+-- Dump completed on 2014-05-20 22:41:51

@@ -6,5 +6,6 @@
     "connector.entryHandler.login",
     "gate.gateHandler.queryConnectorEntry",
     "match.matchHandler.menuCmd",
-    "instructions"
+    "instructions",
+    "match.matchHandler.getMatchInfo"
 ]

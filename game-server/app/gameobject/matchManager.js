@@ -407,10 +407,14 @@ exp.createMatch = function (p1, p2, time, callback) {
     p1 = initPlayer(p1);
     p2 = initPlayer(p2);
 
+
+    var k = utils.getRandom(2);
+    var s = utils.getRandom(2);
+
     var mc = {
-        p: [p1, p2],
+        p: (s == 0 ? [p1, p2] : [p2, p1]),
         ball: 0,
-        attackSide: 0,
+        attackSide: k,
         syncCount: 0,
         encounterTime: -1,
         token: token,
@@ -420,6 +424,9 @@ exp.createMatch = function (p1, p2, time, callback) {
         pause: false,
         state: matchDefs.MATCH_STATE.None
     };
+
+    initPlayerPositions(mc.p[0].info.players, mc.p[0].info.formationId, true);
+    initPlayerPositions(mc.p[1].info.players, mc.p[1].info.formationId, false);
 
     matchs[token] = mc;
 
@@ -462,12 +469,13 @@ var initPlayerPositions = function (players, fid, isLeft) {
             var fmt = matchDefs.FormationInitPosition[fid][i];
             p.position.x = matchDefs.Pitch.Width - fmt.Position.x;
             p.position.y = fmt.Position.y;
-            p.homePosition.x = matchDefs.Pitch.Width - fmt.HomePosition.x;
+            p.homePosition.x = fmt.HomePosition.x;
             p.homePosition.y = fmt.HomePosition.y;
             p.aiClass = fmt.AIClass;
         }
     }
 }
+
 
 // 检查Match状态，负责推送GameStart和比赛超时结束的消息
 var checkMatchStatus = function (dt, mc, callbacks) {
@@ -482,52 +490,13 @@ var checkMatchStatus = function (dt, mc, callbacks) {
         {
             var t = utils.getTimeInUint32();
             t += 5000;
-            var k = utils.getRandom(2);
-            var s = utils.getRandom(2);
 
-            if (s == 0) {
-                mc.p.reverse();
-            }
-
-            mc.attackSide = k;
             mc.startTime = t;
             mc.lastUpdateTime = t;
             mc.state = matchDefs.MATCH_STATE.Normal;
 
-            initPlayerPositions(mc.p[0].info.players, mc.p[0].info.formationId, s == 0);
-            initPlayerPositions(mc.p[1].info.players, mc.p[1].info.formationId, s == 1);
-
-            var left = {
-                uid: mc.p[0].uid,
-                teamPos: [],
-                homePos: [],
-                aiClass: []
-            }
-
-            var right = {
-                uid: mc.p[1].uid,
-                teamPos: [],
-                homePos: [],
-                aiClass: []
-            }
-
-            for (var i = 0; i < mc.p[0].info.players.length; ++i) {
-                var p0 = mc.p[0].info.players[i];
-                var p1 = mc.p[1].info.players[i];
-
-                left.teamPos.push(p0.position.x);
-                left.teamPos.push(p0.position.y);
-                left.homePos.push(p0.homePosition.x);
-                left.homePos.push(p0.homePosition.y);
-                left.aiClass.push(p0.aiClass);
-
-                right.teamPos.push(p1.position.x);
-                right.teamPos.push(p1.position.y);
-                right.homePos.push(p1.homePosition.x);
-                right.homePos.push(p1.homePosition.y);
-                right.aiClass.push(p1.aiClass);
-            }
-            callbacks.startMatch(mc.p, left, right, k, t);
+            var msg = {startTime: t};
+            callbacks.startMatch(mc.p, msg);
         }
     }
     else {
@@ -562,6 +531,25 @@ exp.checkToken = function (token, callback) {
     utils.invokeCallback(callback, new Error('invalid token'));
 }
 
+
+exp.getMatchInfo = function(token, callback) {
+    var mc = matchs[token];
+
+    var left = [];
+    var right = [];
+
+    for (var i = 0; i < mc.p[0].info.players.length; ++i) {
+        var p0 = mc.p[0].info.players[i];
+        var p1 = mc.p[1].info.players[i];
+        left.push(p0);
+        right.push(p1);
+    }
+
+    console.log(left);
+
+    var msg = {leftUid:mc.p[0].uid, left: left, rightUid:mc.p[1].uid, right: right, kickOffSide: mc.attackSide, kickOffPlayer:9};
+    utils.invokeCallback(callback, null, msg);
+}
 
 exp.ready = function (token, uid, callback) {
     var mc = matchs[token];

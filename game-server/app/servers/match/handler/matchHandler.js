@@ -33,8 +33,8 @@ var triggerUpdate = function(callbacks) {
     MM.update(callbacks);
 }
 
-var onStartMatch = function(users, left, right, kickSide, startTime) {
-    this.cs.pushMessageByUids("startMatch", {left: left, right: right, kickOffSide: kickSide, startTime: startTime}, users, function (err) {
+var onStartMatch = function(users, msg) {
+    this.cs.pushMessageByUids("startMatch", msg, users, function (err) {
         if (err) {
             console.log("err: ");
             console.log(err);
@@ -92,6 +92,21 @@ var onSyncTeam = function(msg, users) {
 
 
 var pro = Handler.prototype;
+
+pro.getMatchInfo = function(msg, session, next) {
+    var self = this;
+    var t = session.get('matchToken');
+
+    MM.getMatchInfo(t, function(err, msg) {
+        if (err) {
+            next(err);
+            return;
+        }
+
+        next(null, msg);
+    });
+}
+
 
 pro.ready = function (msg, session, next) {
 

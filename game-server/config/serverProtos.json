@@ -34,17 +34,38 @@
     },
 
     "startMatch" : {
+        "required uInt32 startTime" : 5
+    },
+
+    "match.matchHandler.getMatchInfo" : {
         "message Player" : {
-            "required int32 uid" : 1,
-            "repeated float teamPos" : 2,
-            "repeated float homePos" : 3,
-            "repeated int32 aiClass" : 4
+            "message Point" : {
+                "required float x" : 1,
+                "required float y" : 2
+            },
+            "required uInt32 pcId" : 1,
+            "required string icon" : 2,
+            "required float speed" : 3,
+            "required float strength" : 4,
+            "required float dribbleSkill" : 5,
+            "required float passSkill" : 6,
+            "required float shootSkill" : 7,
+            "required float defenceSkill" : 8,
+            "required float attackSkill" : 9,
+            "required float groundSkill" : 10,
+            "required float airSkill" : 11,
+            "required int32 quality" : 12,
+            "required Point position" : 13,
+            "required Point homePosition" : 14,
+            "required int32 aiClass" : 15
         },
 
-        "required Player left" : 1,
-        "required Player right" : 2,
-        "required int32 kickOffSide" : 3,
-        "required uInt32 startTime" : 4
+        "required uInt32 leftUid" : 1,
+        "repeated Player left" : 2,
+        "required uInt32 rightUid" : 3,
+        "repeated Player right" : 4,
+        "required int32 kickOffSide" : 5,
+        "required int32 kickOffPlayer" : 6
     },
 
     "match.matchHandler.menuCmd" : {
