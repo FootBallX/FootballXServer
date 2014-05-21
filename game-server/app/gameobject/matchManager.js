@@ -118,16 +118,15 @@ var checkInstructions = function (mc) {
 }
 
 
-var makeRandomInstructions = function (mc) {
-    var p = mc.p[mc.attackSide].info;
-    var op = mc.p[getOtherSide(mc.attackSide)].info;
+var makeAtkSideRandomInstruction = function(atkPlayer) {
+    var p = atkPlayer;
+    var ec = p.encounter;
 
-    if (p.encounter.menuType == matchDefs.MENU_TYPE.NONE || op.encounter.menuType == matchDefs.MENU_TYPE.NONE) {
+    // 攻防固定不多于一个指令
+    if (p.encounter.menuType == matchDefs.MENU_TYPE.NONE || ec.instructions.length == 1) {
         return false;
     }
 
-    // 攻防固定不多于一个指令
-    var ec = p.encounter;
     ec.instructions = [];
     var m;
     var r;
@@ -137,16 +136,24 @@ var makeRandomInstructions = function (mc) {
         ec.instructions.push(m[r]);
     }
 
+    return true;
+}
+
+var makeDefRandomInstructions = function (defPlayer) {
+    var p = defPlayer;
+    var ec = p.encounter;
+
     // 守方
-    ec = op.encounter;
+    if (p.encounter.menuType == matchDefs.MENU_TYPE.NONE || ec.instructions.length == ec.involePlayers.length) {
+        return false;
+    }
+
+    var m = matchDefs.MENU_TYPE_INSTRUCTIONS[ec.menuType];
+    var r;
     var defLen = ec.involePlayers.length;
-    if (ec.instructions.length != defLen) {
-        ec.instructions = [];
-        m = matchDefs.MENU_TYPE_INSTRUCTIONS[ec.menuType];
-        for (var i = 0; i < defLen; ++i) {
-            r = utils.getRandom(m.length);
-            ec.instructions.push(m[r]);
-        }
+    while (ec.instructions.length < defLen) {
+        r = utils.getRandom(m.length);
+        ec.instructions.push(m[r]);
     }
 
     return true;
@@ -335,21 +342,35 @@ var syncAllTeamStates = function(mc, callback)
 }
 
 var updateMatch = function (dt, mc, callbacks) {
+
+    var p = mc.p[mc.attackSide].info;
+    var op = mc.p[getOtherSide(mc.attackSide)].info;
+
     if (mc.state == matchDefs.MATCH_STATE.WaitInstruction) {
-        mc.waitInstructionTime -= dt;
-        if (mc.waitInstructionTime > 0) {
-            if (checkInstructions(mc)) {
-                console.log("checked    -----");
-                processInstructions(mc, callbacks);
+        p.waitInstructionTime -= dt;
+        op.waitInstructionTime -= dt;
+
+        if (p.waitInstructionTime <= 0) {
+            if (makeAtkSideRandomInstruction(p))
+            {
+                console.log('made atk');
+                callbacks.instructionDone([mc.p[mc.attackSide]]);
             }
         }
-        else {
-            if (makeRandomInstructions(mc)) {
-                console.log("made    -----");
-                processInstructions(mc, callbacks);
+        if (op.waitInstructionTime <= 0) {
+            if (makeDefRandomInstructions(op))
+            {
+                console.log('made def');
+                callbacks.instructionDone([mc.p[getOtherSide(mc.attackSide)]]);
             }
+        }
+
+        if (checkInstructions(mc)) {
+            console.log("checked    -----");
+            processInstructions(mc, callbacks);
         }
     }
+
 
     if (mc.pause || mc.startTime == 0) {
         return;
@@ -358,7 +379,8 @@ var updateMatch = function (dt, mc, callbacks) {
     if (mc.state == matchDefs.MATCH_STATE.Normal) {
         updateDefendPlayerAroundBall(mc);
         if (checkEncounterInDribble(mc, dt, callbacks.triggerMenu)) {
-            mc.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;   // 20秒等待指令时间
+            p.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
+            op.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
             mc.state = matchDefs.MATCH_STATE.WaitInstruction;
             mc.pause = true;
             return;
@@ -379,6 +401,7 @@ var initPlayer = function (p) {
         sid: p.sid,
         info: {
             ready: false,
+            waitInstructionTime : 0,
             score: 0,
             lastSyncTime: 0,
             encounter: {
@@ -420,7 +443,6 @@ exp.createMatch = function (p1, p2, time, callback) {
         token: token,
         createdTime: time,
         startTime: 0,
-        waitInstructionTime: 0,
         pause: false,
         state: matchDefs.MATCH_STATE.None
     };
@@ -545,8 +567,6 @@ exp.getMatchInfo = function(token, callback) {
         right.push(p1);
     }
 
-    console.log(left);
-
     var msg = {leftUid:mc.p[0].uid, left: left, rightUid:mc.p[1].uid, right: right, kickOffSide: mc.attackSide, kickOffPlayer:9};
     utils.invokeCallback(callback, null, msg);
 }
@@ -628,20 +648,20 @@ exp.menuCmd = function (token, uid, cmd, targetPlayer, callback) {
     var mc = matchs[token];
     var p;
     if (mc.p[0].uid == uid) {
-        p = mc.p[0].info.encounter;
+        p = mc.p[0].info;
     }
     else if (mc.p[1].uid == uid) {
-        p = mc.p[1].info.encounter;
+        p = mc.p[1].info;
     }
 
-    p.instructions.push(cmd);
+    p.encounter.instructions.push(cmd);
     if (targetPlayer !== undefined && targetPlayer != null) {
-        p.involePlayers.push(targetPlayer);
+        p.encounter.involePlayers.push(targetPlayer);
     }
 
     var countDown;
-    if (p.instructions.length < p.involePlayers.length) {
-        mc.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
+    if (p.encounter.instructions.length < p.encounter.involePlayers.length) {
+        p.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
         countDown = matchDefs.INSTRUCTION_WAIT_TIME;
     }
     else {
@@ -649,4 +669,18 @@ exp.menuCmd = function (token, uid, cmd, targetPlayer, callback) {
     }
 
     utils.invokeCallback(callback, null, countDown);
+}
+
+
+exp.setInstructionMovieEnd = function(token, uid, callback) {
+    var mc = matchs[token];
+    var p;
+    if (mc.p[0].uid == uid) {
+        p = mc.p[0].info.encounter;
+    }
+    else if (mc.p[1].uid == uid) {
+        p = mc.p[1].info.encounter;
+    }
+
+
 }

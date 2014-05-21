@@ -22,12 +22,23 @@ var Handler = function (app) {
         triggerMenu:onTriggerMenu.bind(this),
         startMatch:onStartMatch.bind(this),
         sendInstructions:onSendInstructions.bind(this),
-        syncTeam:onSyncTeam.bind(this)
+        syncTeam:onSyncTeam.bind(this),
+        instructionDone:onInstructionDone.bind(this)
     };
 
     schedule.scheduleJob(trigger, triggerUpdate, callbacks);
 };
 
+
+var onInstructionDone = function(users) {
+    // 当玩家超时，没有发送指令的时候，会随机生成指令，然后通知玩家不能再选择指令了。
+    this.cs.pushMessageByUids("instructionsDone", {}, users, function (err) {
+        if (err) {
+            console.log("err: ");
+            console.log(err);
+        }
+    });
+}
 
 var triggerUpdate = function(callbacks) {
     MM.update(callbacks);
@@ -159,14 +170,14 @@ pro.sync = function (msg, session, next) {
 
 
 pro.menuCmd = function (msg, session, next) {
+    var self = this;
     var t = session.get('matchToken');
     var target = null;
-    if (msg.targetPlayerId)
-    {
+    if (msg.targetPlayerId) {
         target = msg.targetPayerId;
     }
-    MM.menuCmd(t, session.uid, msg.cmd, target, function(err, countDown){
-       next(null, {countDown:countDown});
+    MM.menuCmd(t, session.uid, msg.cmd, target, function (err, countDown) {
+        next(null, {countDown: countDown});
     });
 }
 
@@ -176,5 +187,14 @@ pro.time = function (msg, session, next) {
 
     msg['sTime'] = t;
     next(null, msg);
+
+}
+
+
+
+pro.instructionMovieEnd = function (msg, session, next) {
+    var self = this;
+    var t = session.get('matchToken');
+
 
 }

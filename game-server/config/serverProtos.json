@@ -70,5 +70,8 @@
 
     "match.matchHandler.menuCmd" : {
         "required uInt32 countDown" : 1
+    },
+
+    "instructionsDone" : {
     }
 }
