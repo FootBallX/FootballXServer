@@ -8,5 +8,7 @@
     "match.matchHandler.menuCmd",
     "instructions",
     "match.matchHandler.getMatchInfo",
-    "instructionsDone"
+    "instructionsDone",
+    "match.matchHandler.instructionMovieEnd",
+    "resumeMatch"
 ]

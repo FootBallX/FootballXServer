@@ -117,24 +117,14 @@ exp.isRectIntersect = function(p1, p2, q1, q2) {
 	return !(minx > maxx || miny > maxy);
 };
 
-/**
- * Test if the two vector is intersect, the start point is (0,0)
- * @param v1 {Object} Vector 1's end point.
- * @param v2 {Object} Vector 2's end point.
- * @return 
- */
-exp.vecCross = function(v1, v2) {
-	return v1.x * v2.y - v2.x * v1.y;
-};
 
 
+exp.vec2Transform = function(vec2, mat3)
+{
+    var x = vec2.x * mat3[0] + vec2.y * mat3[3] + mat3[6];
+    var y = vec2.x * mat3[1] + vec2.y * mat3[4] + mat3[7];
 
-exp.vecDot = function(v1, v2) {
-    return v1.x * v2.x + v1.y * v2.y;
-}
-
-
-
-exp.getLengthSq = function(v1, v2) {
-    return (v2.x-v1.x) * (v2.x-v1.x) + (v2.y-v1.y) * (v2.y-v1.y);
+    vec2.x = x;
+    vec2.y = y;
+    return vec2;
 }

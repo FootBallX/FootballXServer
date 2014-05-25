@@ -3,7 +3,7 @@ var aniDef = require('./aniDefs');
 
 
 function Rand() {
-    utils.getRandom(65535);
+    return utils.getRandom(65535);
 }
 
 function Log(s) {
@@ -166,6 +166,9 @@ function TackleBall(o1, o2) {
         case 0: //铲球vs传球
         {
             var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_1 + g_ballSpeed;
+            // debug
+            v = g_WinParam_2;
+            Log(v);
             if (v >= g_WinParam_2) {
                 PlayAnimation(aniDef.Animations.ground_chanqiu_failed_ccbi, 0);
                 return RET_FAIL;

@@ -1,5 +1,8 @@
 var utils = require('../util/utils');
-var geometry = require('../util/geometry');
+var geometry = require('../util/Geometry/geometry');
+var Point = require('../util/Geometry/Point');
+var Matrix3 = require('../util/Geometry/Matrix3');
+var Rect = require('../util/Geometry/Rect');
 var matchDefs = require('../shared/matchDefs');
 var matchMenuItem = require('../shared/matchMenuItem');
 var userDao = require('../dao/userDao');
@@ -11,10 +14,10 @@ var matchs = {};
 var globalToken = 0;
 var g_lastUpdateTime = 0;
 
-var getBallPos = function(mc) {
+var getBallPos = function (mc) {
     var players = mc.p[mc.attackSide].info.players
     var pos = players[mc.ball].position;
-    return {x:pos.x, y: pos.y};
+    return {x: pos.x, y: pos.y};
 }
 
 var getOtherSide = function (side) {
@@ -27,6 +30,38 @@ var getOtherSide = function (side) {
 }
 
 
+var isPointOnTheWay = function (p1, p2, p) {
+    var bx = new Rect(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y), Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
+    if (!bx.containsPoint(p)) {
+        return false;
+    }
+
+    var vec = p2.sub(p1);
+    var angle = vec.getAngle();
+
+    var mat = new Matrix3();
+    mat.rotation(-angle);
+
+    var vP1 = p1.clone();
+    var vP2 = p2.clone();
+    var vP = p.clone();
+
+    geometry.vec2Transform(vP1, mat);
+    geometry.vec2Transform(vP2, mat);
+    geometry.vec2Transform(vP, mat);
+
+    if (vP.x < Math.min(vP1.x, vP2.x) || vP.x > Math.max(vP1.x, vP2.x)) {
+        return false;
+    }
+
+    if (Math.abs(vP.y - vP1.y) > 10) {
+        return false;
+    }
+
+    return true;
+}
+
+
 var updateDefendPlayerAroundBall = function (mc) {
     var p = mc.p[mc.attackSide].info;
     var op = mc.p[getOtherSide(mc.attackSide)].info;
@@ -35,7 +70,7 @@ var updateDefendPlayerAroundBall = function (mc) {
     op.encounter.involePlayers = [];
     var v1 = p.players[mc.ball].position;
     for (var i = 0; i < op.players.length; ++i) {
-        var dist = geometry.getLengthSq(v1, op.players[i].position);
+        var dist = v1.getLengthSq(op.players[i].position);
         if (dist < 1600)    // 40 * 40 （距离40以内）
         {
             op.encounter.involePlayers.push(i);
@@ -100,10 +135,10 @@ var checkInstructions = function (mc) {
         var m2 = matchDefs.MENU_TYPE_INSTRUCTIONS[op.encounter.menuType];
         var ins;
 
-            ins = p.encounter.instructions[0];
-            if (!utils.arrayContains(m1, ins)) {
-                return false;
-            }
+        ins = p.encounter.instructions[0];
+        if (!utils.arrayContains(m1, ins)) {
+            return false;
+        }
 
         for (var i = 0; i < oplen1; ++i) {
             ins = op.encounter.instructions[i];
@@ -118,7 +153,7 @@ var checkInstructions = function (mc) {
 }
 
 
-var makeAtkSideRandomInstruction = function(atkPlayer) {
+var makeAtkSideRandomInstruction = function (atkPlayer) {
     var p = atkPlayer;
     var ec = p.encounter;
 
@@ -160,52 +195,44 @@ var makeDefRandomInstructions = function (defPlayer) {
 }
 
 
-var getRandomBallTargets = function(mc)
-{
+var getRandomBallTargets = function (mc) {
     var ballPos = getBallPos(mc);
 
     var xMin = ballPos.x - matchDefs.RandomBallRange.width / 2;
     var yMin = ballPos.y - matchDefs.RandomBallRange.height / 2;
 
-    if (xMin < 0)
-    {
+    if (xMin < 0) {
         xMin = 0;
     }
-    if (yMin < 0)
-    {
+    if (yMin < 0) {
         yMin = 0;
     }
     var xMax = xMin + matchDefs.RandomBallRange.width;
     var yMax = yMin + matchDefs.RandomBallRange.height;
-    if (xMax > matchDefs.Pitch.width)
-    {
+    if (xMax > matchDefs.Pitch.width) {
         xMax = matchDefs.Pitch.width;
     }
-    if (yMax > matchDefs.Pitch.height)
-    {
+    if (yMax > matchDefs.Pitch.height) {
         yMax = matchDefs.Pitch.height;
     }
 
-    var newBallPos = {x : xMin + utils.getRandom(xMax - xMin), y : yMin + utils.getRandom(yMax - yMin)};
+    var newBallPos = {x: xMin + utils.getRandom(xMax - xMin), y: yMin + utils.getRandom(yMax - yMin)};
 
     var player = {
-        newBallPos : newBallPos,
-        playerNumber : -1,
-        side : -1,
-        distanceFromNewBallPos : 100000000
+        newBallPos: newBallPos,
+        playerNumber: -1,
+        side: -1,
+        distanceFromNewBallPos: 100000000
     };
 
-    for (var i = 0; i < mc.p.length; ++i)
-    {
+    for (var i = 0; i < mc.p.length; ++i) {
         var encounter = mc.p[i].info.encounter;
         var team = mc.p[i].info.players;
 
-        for (var j = 0; j < team.length; ++j)
-        {
+        for (var j = 0; j < team.length; ++j) {
             if (!utils.arrayContains(encounter.involePlayers, j)) {     // 排除参与遭遇的球员
                 var len = geometry.getLengthSq(team[j].position, newBallPos);
-                if (player.distanceFromNewBallPos > len)
-                {
+                if (player.distanceFromNewBallPos > len) {
                     player.playerNumber = j;
                     player.side = (i == mc.attackSide ? 0 : 1);
                     player.distanceFromNewBallPos = len;
@@ -243,7 +270,7 @@ var processInstructions = function (mc, callbacks) {
     animations = matchMenuItem.GET_ANIMATIONS();
 
     result = matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS;
-    ins.instructions.push({side: 0, playerNumber: atkPlayerNumber, ins: ins1, result: result, animations:animations});
+    ins.instructions.push({side: 0, playerNumber: atkPlayerNumber, ins: ins1, result: result, animations: animations});
 
 
     var inter = false;
@@ -253,7 +280,7 @@ var processInstructions = function (mc, callbacks) {
         matchMenuItem.CLEAR_ANIMATIONS();
         result = matchMenuItem.MENU_FUNCS[ins2](p.players[atkPlayerNumber], op.players[defPlayerNumber]);
         animations = matchMenuItem.GET_ANIMATIONS();
-        ins.instructions.push({side: 1, playerNumber: defPlayerNumber, ins: ins2, result: result, animations:animations});
+        ins.instructions.push({side: 1, playerNumber: defPlayerNumber, ins: ins2, result: result, animations: animations});
 
         switch (result) {
             case matchMenuItem.MENU_ITEM_RETURN_CODE.RET_FAIL:
@@ -286,8 +313,8 @@ var processInstructions = function (mc, callbacks) {
             case matchMenuItem.MENU_ITEM.Pass:
                 ins.ballSide = 0;
                 ins.playerNumber = p.encounter.involePlayers[1];
-                ins.ballPosX = p.players[ins.playerNumber].positions.x;
-                ins.ballPosY = p.players[ins.playerNumber].positions.y;
+                ins.ballPosX = p.players[ins.playerNumber].position.x;
+                ins.ballPosY = p.players[ins.playerNumber].position.y;
                 break;
             case matchMenuItem.MENU_ITEM.Shoot:
                 break;
@@ -303,6 +330,7 @@ var processInstructions = function (mc, callbacks) {
     {
         mc.attackSide = mc.attackSide == 0 ? 1 : 0;
     }
+    console.log('pass ball to : ' + ins.playerNumber);
     mc.ball = ins.playerNumber;
 
     console.log('instrunction done!!!!!!!!!!!!!')
@@ -320,8 +348,7 @@ var processInstructions = function (mc, callbacks) {
 }
 
 
-var syncAllTeamStates = function(mc, callback)
-{
+var syncAllTeamStates = function (mc, callback) {
     for (var i = 0; i < mc.p.length; ++i) {
         var msg = {
             side: i,
@@ -331,13 +358,28 @@ var syncAllTeamStates = function(mc, callback)
         };
         var players = mc.p[i].info.players;
         for (var j = 0; j < players.length; ++j) {
-            msg.teamPos.push(players[j].position.x)
+            msg.teamPos.push(players[j].position.x);
             msg.teamPos.push(players[j].position.y);
             msg.teamPos.push(0);
             msg.teamPos.push(0);
         }
 
         utils.invokeCallback(callback, msg, mc.p);
+    }
+}
+
+var checkInstructionMovieEnd = function (mc, callbacks) {
+    var ready = mc.p[0].info.ready && mc.p[1].info.ready;
+    if (ready)  // 双方都完成播放指令动画了
+    {
+        console.log('resume match~~~~~~~');
+        mc.p[0].info.ready = false;
+        mc.p[1].info.ready = false;
+
+        mc.pause = false;
+        mc.state = matchDefs.MATCH_STATE.Normal;
+
+        callbacks.resumeMatch(mc.p);
     }
 }
 
@@ -351,15 +393,13 @@ var updateMatch = function (dt, mc, callbacks) {
         op.waitInstructionTime -= dt;
 
         if (p.waitInstructionTime <= 0) {
-            if (makeAtkSideRandomInstruction(p))
-            {
+            if (makeAtkSideRandomInstruction(p)) {
                 console.log('made atk');
                 callbacks.instructionDone([mc.p[mc.attackSide]]);
             }
         }
         if (op.waitInstructionTime <= 0) {
-            if (makeDefRandomInstructions(op))
-            {
+            if (makeDefRandomInstructions(op)) {
                 console.log('made def');
                 callbacks.instructionDone([mc.p[getOtherSide(mc.attackSide)]]);
             }
@@ -369,6 +409,9 @@ var updateMatch = function (dt, mc, callbacks) {
             console.log("checked    -----");
             processInstructions(mc, callbacks);
         }
+    }
+    else if (mc.state == matchDefs.MATCH_STATE.WaitInstructionMovieEnd) {
+        checkInstructionMovieEnd(mc, callbacks);
     }
 
 
@@ -400,15 +443,14 @@ var initPlayer = function (p) {
         uid: p.uid,
         sid: p.sid,
         info: {
-            ready: false,
-            waitInstructionTime : 0,
+            ready: false,           // ready有两个作用，比赛未开始时候用于标记客户端可以开始比赛，比赛开始以后用以标记客户端播放指令动画完毕，可以恢复比赛
+            waitInstructionTime: 0,
             score: 0,
             lastSyncTime: 0,
             encounter: {
                 menuType: matchDefs.MENU_TYPE.NONE,
                 involePlayers: [],
                 instructions: []                        // 触发遭遇时候，玩家选择的指令，从客户端得到，数量等于参与遭遇的球员人数
-//                instructionResults:[]                   // 指令的计算结果，目前只有成功，失败，随机球3种
             },
             formationId: fid,                              // TODO: 阵型编号，从数据库读取（Player表中）
             players: p.players
@@ -481,18 +523,14 @@ var initPlayerPositions = function (players, fid, isLeft) {
         var p = players[i];
         if (!!isLeft) {
             var fmt = matchDefs.FormationInitPosition[fid][i];
-            p.position.x = fmt.Position.x;
-            p.position.y = fmt.Position.y;
-            p.homePosition.x = fmt.HomePosition.x;
-            p.homePosition.y = fmt.HomePosition.y;
+            p.position = new Point(fmt.Position.x, fmt.Position.y);
+            p.homePosition = new Point(fmt.HomePosition.x, fmt.HomePosition.y);
             p.aiClass = fmt.AIClass;
         }
         else {
             var fmt = matchDefs.FormationInitPosition[fid][i];
-            p.position.x = matchDefs.Pitch.Width - fmt.Position.x;
-            p.position.y = fmt.Position.y;
-            p.homePosition.x = fmt.HomePosition.x;
-            p.homePosition.y = fmt.HomePosition.y;
+            p.position = new Point(matchDefs.Pitch.Width - fmt.Position.x, fmt.Position.y);
+            p.homePosition = new Point(fmt.HomePosition.x, fmt.HomePosition.y);
             p.aiClass = fmt.AIClass;
         }
     }
@@ -503,10 +541,7 @@ var initPlayerPositions = function (players, fid, isLeft) {
 var checkMatchStatus = function (dt, mc, callbacks) {
     if (mc.startTime == 0)  // 比赛未开始
     {
-        var ready = false;
-        for (var i in mc.p) {
-            ready |= mc.p[i].ready;
-        }
+        var ready = mc.p[0].info.ready && mc.p[1].info.ready;
 
         if (ready)  // 双方都Ready了
         {
@@ -516,6 +551,9 @@ var checkMatchStatus = function (dt, mc, callbacks) {
             mc.startTime = t;
             mc.lastUpdateTime = t;
             mc.state = matchDefs.MATCH_STATE.Normal;
+
+            mc.p[0].info.ready = false;
+            mc.p[1].info.ready = false;
 
             var msg = {startTime: t};
             callbacks.startMatch(mc.p, msg);
@@ -554,7 +592,7 @@ exp.checkToken = function (token, callback) {
 }
 
 
-exp.getMatchInfo = function(token, callback) {
+exp.getMatchInfo = function (token, callback) {
     var mc = matchs[token];
 
     var left = [];
@@ -567,7 +605,7 @@ exp.getMatchInfo = function(token, callback) {
         right.push(p1);
     }
 
-    var msg = {leftUid:mc.p[0].uid, left: left, rightUid:mc.p[1].uid, right: right, kickOffSide: mc.attackSide, kickOffPlayer:9};
+    var msg = {leftUid: mc.p[0].uid, left: left, rightUid: mc.p[1].uid, right: right, kickOffSide: mc.attackSide, kickOffPlayer: 9};
     utils.invokeCallback(callback, null, msg);
 }
 
@@ -577,7 +615,7 @@ exp.ready = function (token, uid, callback) {
     var i;
     for (i = 0; i < mc.p.length; ++i) {
         if (mc.p[i].uid == uid) {
-            mc.p[i].ready = true;
+            mc.p[i].info.ready = true;
             break;
         }
     }
@@ -634,7 +672,7 @@ exp.syncPlayerPos = function (token, uid, teamPos, ballPos, timeStamp) {
     for (i = 0, j = 0; i < teamPos.length; i += 4, ++j) {
 
         p[j].position.x = teamPos[i];
-        p[j].position.y = teamPos[i];
+        p[j].position.y = teamPos[i + 1];
     }
 
     p.lastSyncTime = timeStamp;
@@ -654,13 +692,14 @@ exp.menuCmd = function (token, uid, cmd, targetPlayer, callback) {
         p = mc.p[1].info;
     }
 
+    var len = p.encounter.involePlayers.length;
     p.encounter.instructions.push(cmd);
     if (targetPlayer !== undefined && targetPlayer != null) {
         p.encounter.involePlayers.push(targetPlayer);
     }
 
     var countDown;
-    if (p.encounter.instructions.length < p.encounter.involePlayers.length) {
+    if (p.encounter.instructions.length < len) {
         p.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
         countDown = matchDefs.INSTRUCTION_WAIT_TIME;
     }
@@ -672,15 +711,18 @@ exp.menuCmd = function (token, uid, cmd, targetPlayer, callback) {
 }
 
 
-exp.setInstructionMovieEnd = function(token, uid, callback) {
+exp.setInstructionMovieEnd = function (token, uid, callback) {
     var mc = matchs[token];
-    var p;
+    var pInfo;
     if (mc.p[0].uid == uid) {
-        p = mc.p[0].info.encounter;
+        pInfo = mc.p[0].info;
     }
     else if (mc.p[1].uid == uid) {
-        p = mc.p[1].info.encounter;
+        pInfo = mc.p[1].info;
     }
 
+    console.log('MovieEnd: ' + uid);
+    pInfo.ready = true;
 
+    utils.invokeCallback(callback, null);
 }

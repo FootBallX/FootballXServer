@@ -14,5 +14,9 @@
     "match.matchHandler.menuCmd": {
         "required uInt32 cmd" : 1,
         "optional uInt32 targetPlayerId" : 2
+    },
+
+    "match.matchHandler.instructionMovieEnd" : {
+
     }
 }
