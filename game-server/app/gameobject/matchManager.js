@@ -244,6 +244,68 @@ var getRandomBallTargets = function (mc) {
     return player;
 }
 
+var checkAutoEncounterOnPass = function(p, op, ins)
+{
+    var p1 = p.players[p.encounter.involePlayers[0]].position;
+    var p2 = p.players[p.encounter.involePlayers[1]].position;
+    var atkPlayerNumber = p.encounter.involePlayers[0];
+
+    var inter = false;
+    // 从1开始，跳过门将
+    for (var i = 1; i < op.players.length; ++i)
+    {
+        var involePlayers = op.encounter.involePlayers;
+        var found = false;
+        for (var j = 0; j < involePlayers.length; ++j)
+        {
+            if (involePlayers[j] == i)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            console.log('isPointOnTheWay');
+            if (isPointOnTheWay(p1, p2, op.players[i].position)){
+                console.log('did on the way');
+                var ins2 = matchMenuItem.MENU_ITEM.Block;
+                matchMenuItem.CLEAR_ANIMATIONS();
+                var result = matchMenuItem.MENU_FUNCS[ins2](p.players[atkPlayerNumber], op.players[i]);
+                var animations = matchMenuItem.GET_ANIMATIONS();
+                ins.instructions.push({side: 1, playerNumber: i, ins: ins2, result: result, animations: animations});
+                var inter = false;
+                switch (result) {
+                    case matchMenuItem.MENU_ITEM_RETURN_CODE.RET_FAIL:
+                        break;
+                    case matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS:
+                        ins.ballSide = 1;
+                        ins.playerNumber = defPlayerNumber;
+                        ins.ballPosX = op.players[defPlayerNumber].position.x;
+                        ins.ballPosY = op.players[defPlayerNumber].position.y;
+                        inter = true;
+                        break;
+                    case matchMenuItem.MENU_ITEM_RETURN_CODE.RET_RANDOM_BALL:
+                        var player = getRandomBallTargets(mc);
+                        ins.ballSide = player.side;
+                        ins.playerNumber = player.playerNumber;
+                        ins.ballPosX = player.newBallPos.x;
+                        ins.ballPosY = player.newBallPos.y;
+                        inter = true;
+                        break;
+                }
+
+                if (inter)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    return inter;
+}
 
 var processInstructions = function (mc, callbacks) {
     var p = mc.p[mc.attackSide].info;
@@ -308,14 +370,26 @@ var processInstructions = function (mc, callbacks) {
     }
 
     if (false == inter) {
+        console.log(p.encounter.instructions[0]);
         // 走到这里说明一切防守指令都失败
         switch (p.encounter.instructions[0]) {
             case matchMenuItem.MENU_ITEM.Pass:
-                ins.ballSide = 0;
-                ins.playerNumber = p.encounter.involePlayers[1];
-                ins.ballPosX = p.players[ins.playerNumber].position.x;
-                ins.ballPosY = p.players[ins.playerNumber].position.y;
+                // 检查传球路线上是否有遭遇发送
+            {
+                console.log('check auto');
+                if (checkAutoEncounterOnPass(p, op, ins)) {
+                    console.log('blocked');
+                }
+                else {
+                    // 一切OK，传球成功
+                    ins.ballSide = 0;
+                    ins.playerNumber = p.encounter.involePlayers[1];
+                    ins.ballPosX = p.players[ins.playerNumber].position.x;
+                    ins.ballPosY = p.players[ins.playerNumber].position.y;
+                }
                 break;
+            }
+
             case matchMenuItem.MENU_ITEM.Shoot:
                 break;
             case matchMenuItem.MENU_ITEM.Dribble:
