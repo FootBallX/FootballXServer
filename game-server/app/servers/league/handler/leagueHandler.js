@@ -53,6 +53,7 @@ var onPairSuccess = function (user1, user2) {
             s2.push("matchToken", cb);
         },
         function(cb){
+            console.log('push onPaire');
             self.cs.pushMessageByUids("onPair", {code: Code.OK}, [user1, user2], cb);
         }
     ], function(err){

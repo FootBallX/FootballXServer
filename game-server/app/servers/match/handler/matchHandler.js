@@ -41,8 +41,8 @@ var onInstructionDone = function(users) {
     });
 }
 
-var onResumeMatch = function(users) {
-    this.cs.pushMessageByUids("resumeMatch", {}, users, function (err) {
+var onResumeMatch = function(users, msg) {
+    this.cs.pushMessageByUids("resumeMatch", msg, users, function (err) {
         if (err) {
             console.log("err: ");
             console.log(err);
@@ -85,6 +85,7 @@ var onTriggerMenu = function(user1, user2, attackPlayerNumbers, defendPlayerNumb
             console.log(err);
         }
     });
+
 }
 
 
@@ -158,15 +159,6 @@ pro.sync = function (msg, session, next) {
         s.kick(session.uid, null);
         return;
     }
-
-    self.cs.pushMessageByUids("sync", msg, [user], function (err) {
-        if (err) {
-            console.log("err: ");
-            console.log(err);
-        }
-    });
-
-//    onSyncTeam(msg, [user]);
 
     self.cs.pushMessageByUids("sync", msg, [user], function (err) {
         if (err) {

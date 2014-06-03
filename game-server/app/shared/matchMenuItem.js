@@ -122,6 +122,7 @@ function GetSpeed(o1) {
 
 function StartPassBall(o1, isAir) {
     g_Animations = [];
+    g_isAir = isAir;
     if (g_isAir) {
         PlayAnimation(aniDef.Animations.air_chuanqiu_ccbi, 0);
         g_ballSpeed = 0;
@@ -137,10 +138,16 @@ function StartPassBall(o1, isAir) {
 
 function StartDribble(o1) {
     g_Animations = [];
+    PlayAnimation(aniDef.Animations.ground_pandai_ccbi, 0);
+    g_type = 2;
+    g_ballSpeed = 0;
 }
 
-function StartOneTwo(o1) {
+function StartOneTwo(o1, isAir) {
     g_Animations = [];
+    g_isAir = isAir;
+    PlayAnimation(aniDef.Animations.ground_chuanqiu_ccbi, 0);
+    g_type = 3;
 }
 
 
@@ -157,6 +164,12 @@ function ReceiveBall(o1) {
         g_type = 0;
     }
     return;
+}
+
+
+// 二过一回传
+function OneTwoPassBack(o1) {
+    PlayAnimation(aniDef.Animations.ground_2guo1_ccbi, 0);
 }
 
 // 铲球
@@ -209,6 +222,9 @@ function TackleBall(o1, o2) {
         case 2: //铲球vs盘带
         {
             var v = Rand() % 1000 + (o1.dribbleSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_4;
+            Log(v);
+            Log('盘带');
+            v = g_WinParam_1;
             if (v >= g_WinParam_1) {
                 PlayAnimation(aniDef.Animations.ground_chanqiu_failed_ccbi, 0);
                 return RET_FAIL;
@@ -325,11 +341,61 @@ function InterceptBall(o1, o2) {
             break;
         }
 
+        case 4: //空中拦截vs传球
+        {
+            var v = Rand() % 1000 + (o1.passSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_18 + g_ballSpeed;
+            if (v >= g_WinParam_2) {
+                PlayAnimation(aniDef.Animations.air_lanjie_failed_ccbi, 0);
+                return RET_FAIL;
+            } else if (v >= g_RandomParam_2) {
+                PlayAnimation(aniDef.Animations.air_lanjie_randomball_ccbi, 0);
+                return RET_RANDOM_BALL;
+            } else if (v >= g_ReducedParam_2) {
+                PlayAnimation(aniDef.Animations.air_lanjie_reduced_ccbi, 0);
+                g_ballSpeed += g_ReducedParam;
+                return RET_REDUCE;
+            } else {
+                PlayAnimation(aniDef.Animations.air_lanjie_success_ccbi, 0);
+                return RET_SUCCESS;
+            }
+            break;
+        }
 
-        // case 4 :    //空中传球vs拦截
-        // PlayAnimation (aniDef.Animations.ground_paowei_ccbi, 0);
-        // var v = Rand() % 1000 + ( o1.passSkill + o2.airSkill ) - ( o2.defenceSkill + o2.airSkill ) + g_OrderParam_2 + g_ballSpeed;
+        case 5: //空中拦截vs射门
+        {
+            var v = Rand() % 1000 + (o1.shootSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_22 + g_ballSpeed;
+            if (v >= g_WinParam_2) {
+                PlayAnimation(aniDef.Animations.air_lanjie_failed_ccbi, 0);
+                return RET_FAIL;
+            } else if (v >= g_RandomParam_2) {
+                PlayAnimation(aniDef.Animations.air_lanjie_randomball_ccbi, 0);
+                return RET_RANDOM_BALL;
+            } else if (v >= g_ReducedParam_2) {
+                PlayAnimation(aniDef.Animations.air_lanjie_reduced_ccbi, 0);
+                g_ballSpeed += g_ReducedParam;
+                return RET_REDUCE;
+            } else {
+                PlayAnimation(aniDef.Animations.air_lanjie_success_ccbi, 0);
+                return RET_SUCCESS;
+            }
+            break;
+        }
 
+        case 6: //空中拦截vs停球
+        {
+            var v = Rand() % 1000 + (o1.dribbleSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_14;
+            if (v >= g_WinParam_1) {
+                PlayAnimation(aniDef.Animations.air_lanjie_failed_ccbi, 0);
+                return RET_FAIL;
+            } else if (v >= g_RandomParam_1) {
+                PlayAnimation(aniDef.Animations.air_lanjie_randomball_ccbi, 0);
+                return RET_RANDOM_BALL;
+            } else {
+                PlayAnimation(aniDef.Animations.air_lanjie_success_ccbi, 0);
+                return RET_SUCCESS;
+            }
+            break;
+        }
     }
 }
 
@@ -408,6 +474,62 @@ function BlockBall(o1, o2) {
                 return RET_REDUCE;
             } else {
                 PlayAnimation(aniDef.Animations.ground_fengdu_success_ccbi, 0);
+                return RET_SUCCESS;
+            }
+            break;
+        }
+
+        case 4: //空中封堵vs传球
+        {
+            var v = Rand() % 1000 + (o1.passSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_19 + g_ballSpeed;
+            if (v >= g_WinParam_2) {
+                PlayAnimation(aniDef.Animations.air_fengdu_failed_ccbi, 0);
+                return RET_FAIL;
+            } else if (v >= g_RandomParam_2) {
+                PlayAnimation(aniDef.Animations.air_fengdu_randomball_ccbi, 0);
+                return RET_RANDOM_BALL;
+            } else if (v >= g_ReducedParam_2) {
+                PlayAnimation(aniDef.Animations.air_fengdu_reduced_ccbi, 0);
+                g_ballSpeed += g_ReducedParam;
+                return RET_REDUCE;
+            } else {
+                PlayAnimation(aniDef.Animations.air_fengdu_success_ccbi, 0);
+                return RET_SUCCESS;
+            }
+            break;
+        }
+
+        case 5: //空中封堵vs射门
+        {
+            var v = Rand() % 1000 + (o1.shootSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_23 + g_ballSpeed;
+            if (v >= g_WinParam_2) {
+                PlayAnimation(aniDef.Animations.air_fengdu_failed_ccbi, 0);
+                return RET_FAIL;
+            } else if (v >= g_RandomParam_2) {
+                PlayAnimation(aniDef.Animations.air_fengdu_randomball_ccbi, 0);
+                return RET_RANDOM_BALL;
+            } else if (v >= g_ReducedParam_2) {
+                PlayAnimation(aniDef.Animations.air_fengdu_reduced_ccbi, 0);
+                g_ballSpeed += g_ReducedParam;
+                return RET_REDUCE;
+            } else {
+                PlayAnimation(aniDef.Animations.air_fengdu_success_ccbi, 0);
+                return RET_SUCCESS;
+            }
+            break;
+        }
+
+        case 6: //空中封堵vs停球
+        {
+            var v = Rand() % 1000 + (o1.dribbleSkill + o1.airSkill) - (o2.defenceSkill + o2.airSkill) + g_OrderParam_15;
+            if (v >= g_WinParam_1) {
+                PlayAnimation(aniDef.Animations.air_fengdu_failed_ccbi, 0);
+                return RET_FAIL;
+            } else if (v >= g_RandomParam_1) {
+                PlayAnimation(aniDef.Animations.air_fengdu_randomball_ccbi, 0);
+                return RET_RANDOM_BALL;
+            } else {
+                PlayAnimation(aniDef.Animations.air_fengdu_success_ccbi, 0);
                 return RET_SUCCESS;
             }
             break;
@@ -539,6 +661,9 @@ module.exports = {
         undefined,              // 12
         undefined               // 13
     ],
+
+    ReceiveBall:ReceiveBall,
+    OneTwoPassBack:OneTwoPassBack,
 
     MENU_ITEM: {
         Pass: 0,

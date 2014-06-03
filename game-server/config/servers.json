@@ -42,7 +42,7 @@
             {
                 "host": "127.0.0.1",
                 "port": "6000++",
-                "clusterCount":2,
+                "clusterCount":1,
                 "args":"--debug=5858"
             }
         ]

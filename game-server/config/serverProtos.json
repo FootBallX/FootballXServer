@@ -76,6 +76,7 @@
     },
 
     "resumeMatch" : {
-
+        "repeated int32 leftStunnedPlayers" : 1,
+        "repeated int32 rightStunnedPlayers": 2
     }
 }

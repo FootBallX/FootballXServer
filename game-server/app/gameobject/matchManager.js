@@ -66,20 +66,21 @@ var updateDefendPlayerAroundBall = function (mc) {
     var p = mc.p[mc.attackSide].info;
     var op = mc.p[getOtherSide(mc.attackSide)].info;
 
+    console.log('mc.ball: ' + mc.ball);
     p.encounter.involePlayers = [mc.ball];
     op.encounter.involePlayers = [];
-    var v1 = p.players[mc.ball].position;
     for (var i = 0; i < op.players.length; ++i) {
-        var dist = v1.getLengthSq(op.players[i].position);
-        if (dist < 1600)    // 40 * 40 （距离40以内）
-        {
-            op.encounter.involePlayers.push(i);
+        if (op.players[i].stunned == false) {
+            var dist = v1.getLengthSq(op.players[i].position);
+            if (dist < 1600)    // 40 * 40 （距离40以内）
+            {
+                op.encounter.involePlayers.push(i);
+            }
         }
     }
 }
 
 var checkEncounterInDribble = function (mc, dt, callback) {
-
     var u1 = mc.p[mc.attackSide];
     var u2 = mc.p[getOtherSide(mc.attackSide)];
     var p = u1.info;
@@ -231,7 +232,7 @@ var getRandomBallTargets = function (mc) {
 
         for (var j = 0; j < team.length; ++j) {
             if (!utils.arrayContains(encounter.involePlayers, j)) {     // 排除参与遭遇的球员
-                var len = geometry.getLengthSq(team[j].position, newBallPos);
+                var len = team[j].position.getLengthSq(newBallPos);
                 if (player.distanceFromNewBallPos > len) {
                     player.playerNumber = j;
                     player.side = (i == mc.attackSide ? 0 : 1);
@@ -244,11 +245,10 @@ var getRandomBallTargets = function (mc) {
     return player;
 }
 
-var checkAutoEncounterOnPass = function(p, op, ins)
+var checkAutoEncounterOnRoute = function(mc, p, passFromPlayerNumber, passToPlayerNumber, op, ins, action)
 {
-    var p1 = p.players[p.encounter.involePlayers[0]].position;
-    var p2 = p.players[p.encounter.involePlayers[1]].position;
-    var atkPlayerNumber = p.encounter.involePlayers[0];
+    var p1 = p.players[passFromPlayerNumber].position;
+    var p2 = p.players[passToPlayerNumber].position;
 
     var inter = false;
     // 从1开始，跳过门将
@@ -267,12 +267,12 @@ var checkAutoEncounterOnPass = function(p, op, ins)
 
         if (!found)
         {
-            console.log('isPointOnTheWay');
+            // TODO: 防守球员应该按照和球的距离排序
             if (isPointOnTheWay(p1, p2, op.players[i].position)){
                 console.log('did on the way');
-                var ins2 = matchMenuItem.MENU_ITEM.Block;
+                var ins2 = action;
                 matchMenuItem.CLEAR_ANIMATIONS();
-                var result = matchMenuItem.MENU_FUNCS[ins2](p.players[atkPlayerNumber], op.players[i]);
+                var result = matchMenuItem.MENU_FUNCS[ins2](p.players[passFromPlayerNumber], op.players[i]);
                 var animations = matchMenuItem.GET_ANIMATIONS();
                 ins.instructions.push({side: 1, playerNumber: i, ins: ins2, result: result, animations: animations});
                 var inter = false;
@@ -281,9 +281,9 @@ var checkAutoEncounterOnPass = function(p, op, ins)
                         break;
                     case matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS:
                         ins.ballSide = 1;
-                        ins.playerNumber = defPlayerNumber;
-                        ins.ballPosX = op.players[defPlayerNumber].position.x;
-                        ins.ballPosY = op.players[defPlayerNumber].position.y;
+                        ins.playerNumber = i;
+                        ins.ballPosX = op.players[i].position.x;
+                        ins.ballPosY = op.players[i].position.y;
                         inter = true;
                         break;
                     case matchMenuItem.MENU_ITEM_RETURN_CODE.RET_RANDOM_BALL:
@@ -307,9 +307,72 @@ var checkAutoEncounterOnPass = function(p, op, ins)
     return inter;
 }
 
+
+
+var checkAirBall = function(p, op)
+{
+    switch (p.encounter.instructions[0])
+    {
+        case matchMenuItem.MENU_ITEM.Pass:
+        case matchMenuItem.MENU_ITEM.OneTwo:
+        {
+            var pos1 = p.players[p.encounter.involePlayers[0]].position;
+            var pos2 = p.players[p.encounter.involePlayers[1]].position;
+            if (pos1.getLengthSq(pos2) >= 300 * 300)
+            {
+                // 传球距离大于300为空中球
+                return true;
+            }
+            break;
+        }
+    }
+
+    return false;
+}
+
+var stun = function(p, isAtkSide) {
+    if (isAtkSide){
+        p.players[p.encounter.involePlayers[0]].stuned = true;
+    }
+    else
+    {
+        for (var i = 0; i < p.encounter.involePlayers.length; ++i)
+        {
+            p.players[p.encounter.involePlayers[i]].stuned = true;
+        }
+    }
+
+    p.stunnedTime = matchDefs.STUNNED_TIME;
+}
+
+
+var triggerGoalkeeperIns = function(mc, callbacks) {
+    var u1 = mc.p[mc.attackSide];
+    var u2 = mc.p[getOtherSide(mc.attackSide)];
+    var p = u1.info;
+    var op = u2.info;
+
+    p.encounter.menuType = matchDefs.MENU_TYPE.NONE;
+    op.encounter.menuType = matchDefs.MENU_TYPE.GOAL_KEEPER_DEF_G;
+    p.encounter.involePlayers = [];
+    op.encounter.involePlayers = [0];   // goalkeeper
+    p.encounter.instructions = [];
+    op.encounter.instructions = [];
+    utils.invokeCallback(callbacks.triggerMenu, u1, u2, p.encounter.involePlayers, op.encounter.involePlayers);
+
+    p.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
+    op.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
+    mc.state = matchDefs.MATCH_STATE.WaitInstruction;
+    mc.pause = true;
+}
+
+
+
 var processInstructions = function (mc, callbacks) {
     var p = mc.p[mc.attackSide].info;
     var op = mc.p[getOtherSide(mc.attackSide)].info;
+
+    var isAirBall = checkAirBall(p, op);
 
     var ins = {
         instructions: [],
@@ -328,7 +391,7 @@ var processInstructions = function (mc, callbacks) {
     var ins1 = p.encounter.instructions[0];
     atkPlayerNumber = p.encounter.involePlayers[0];
     matchMenuItem.CLEAR_ANIMATIONS();
-    matchMenuItem.MENU_FUNCS[ins1](p.players[atkPlayerNumber]);
+    matchMenuItem.MENU_FUNCS[ins1](p.players[atkPlayerNumber], isAirBall);
     animations = matchMenuItem.GET_ANIMATIONS();
 
     result = matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS;
@@ -353,6 +416,7 @@ var processInstructions = function (mc, callbacks) {
                 ins.ballPosX = op.players[defPlayerNumber].position.x;
                 ins.ballPosY = op.players[defPlayerNumber].position.y;
                 inter = true;
+                stun(p, true);
                 break;
             case matchMenuItem.MENU_ITEM_RETURN_CODE.RET_RANDOM_BALL:
                 var player = getRandomBallTargets(mc);
@@ -361,6 +425,13 @@ var processInstructions = function (mc, callbacks) {
                 ins.ballPosX = player.newBallPos.x;
                 ins.ballPosY = player.newBallPos.y;
                 inter = true;
+                matchMenuItem.CLEAR_ANIMATIONS();
+                matchMenuItem.ReceiveBall(p.players[atkPlayerNumber]);
+                animations = matchMenuItem.GET_ANIMATIONS();
+                ins.instructions.push({side: 0, playerNumber: player.playerNumber, ins: ins1, result: matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS, animations: animations});
+
+                stun(p, true);
+                stun(op, false);
                 break;
         }
 
@@ -376,29 +447,97 @@ var processInstructions = function (mc, callbacks) {
             case matchMenuItem.MENU_ITEM.Pass:
                 // 检查传球路线上是否有遭遇发送
             {
-                console.log('check auto');
-                if (checkAutoEncounterOnPass(p, op, ins)) {
-                    console.log('blocked');
+                if (checkAutoEncounterOnRoute(mc, p, p.encounter.involePlayers[0], p.encounter.involePlayers[1], op, ins, matchMenuItem.MENU_ITEM.Intercept)) {
+                    //TODO: 半路被截断，是否需要硬直？
+                    stun(p, true);
                 }
                 else {
                     // 一切OK，传球成功
+                    var targetPlayerNumber = p.encounter.involePlayers[1];
+                    matchMenuItem.CLEAR_ANIMATIONS();
+                    matchMenuItem.ReceiveBall(p.players[atkPlayerNumber]);
+                    animations = matchMenuItem.GET_ANIMATIONS();
+                    ins.instructions.push({side: 0, playerNumber: atkPlayerNumber, ins: ins1, result: matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS, animations: animations});
+
                     ins.ballSide = 0;
                     ins.playerNumber = p.encounter.involePlayers[1];
                     ins.ballPosX = p.players[ins.playerNumber].position.x;
                     ins.ballPosY = p.players[ins.playerNumber].position.y;
+                    stun(op, false);
                 }
                 break;
             }
 
             case matchMenuItem.MENU_ITEM.Shoot:
+                if (checkAutoEncounterOnRoute(mc, p, p.encounter.involePlayers[0], p.encounter.involePlayers[1], op, ins, matchMenuItem.MENU_ITEM.Block)) {
+                    //TODO: 半路被截断，是否需要硬直？
+                    stun(p, true);
+                }
+                else {
+                    mc.nextTriggerMenu = matchMenuItem.MENU_TYPE.GOAL_KEEPER_DEF_G;
+                    ins.ballSide = 0;
+                    ins.playerNumber = p.encounter.involePlayers[0];
+                    ins.ballPosX = p.players[ins.playerNumber].position.x;
+                    ins.ballPosY = p.players[ins.playerNumber].position.y;
+                }
                 break;
             case matchMenuItem.MENU_ITEM.Dribble:
+                ins.ballSide = 0;
+                ins.playerNumber = mc.ball;
+                stun(op, false);
                 break;
             case matchMenuItem.MENU_ITEM.OneTwo:
+                if (checkAutoEncounterOnRoute(mc, p, p.encounter.involePlayers[0], p.encounter.involePlayers[1], op, ins, matchMenuItem.MENU_ITEM.Intercept)) {
+                    stun(p, true);
+                }
+                else {
+                    // 二过一发起球员向前移动一定距离，等待回传
+                    var pos = p.players[p.encounter.involePlayers[0]].position;
+
+                    if (p.side == 0) {
+                        pos.x += matchDefs.ONE_TWO_OFFSET;
+                        if (pos.x > matchDefs.Pitch.Width)
+                        {
+                            pos.x = matchDefs.Pitch.Width;
+                        }
+                    }
+                    else {
+                        pos.x -= matchDefs.ONE_TWO_OFFSET;
+                        if (pos.x < 0) {
+                            pos.x = 0;
+                        }
+                    }
+
+                    var assistPlayerNumber = p.encounter.involePlayers[1];
+                    matchMenuItem.CLEAR_ANIMATIONS();
+                    matchMenuItem.OneTwoPassBack(p.players[assistPlayerNumber]);
+                    animations = matchMenuItem.GET_ANIMATIONS();
+                    ins.instructions.push({side: 0, playerNumber: assistPlayerNumber, ins: ins1, result: matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS, animations: animations});
+
+                    // 回传
+                    if (checkAutoEncounterOnRoute(mc, p, p.encounter.involePlayers[1], p.encounter.involePlayers[0], op, ins, matchMenuItem.MENU_ITEM.Intercept)){
+                        stun(p, true);
+                    }
+                    else {
+                        matchMenuItem.CLEAR_ANIMATIONS();
+                        matchMenuItem.ReceiveBall(p.players[atkPlayerNumber]);
+                        animations = matchMenuItem.GET_ANIMATIONS();
+                        ins.instructions.push({side: 0, playerNumber: atkPlayerNumber, ins: ins1, result: matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS, animations: animations});
+
+                        // 一切OK，传球成功
+                        ins.ballSide = 0;
+                        ins.playerNumber = p.encounter.involePlayers[0];
+                        ins.ballPosX = p.players[ins.playerNumber].position.x;
+                        ins.ballPosY = p.players[ins.playerNumber].position.y;
+                        stun(op, false);
+                    }
+                }
                 break;
         }
     }
 
+    // TODO: 指令中的Position有点多余，因为指令发送完毕以后会有一次完全同步位置
+    // TODO: 指令中的控球信息也是多余，无需发送客户端
     // 根据指令结果，更新服务器数据
     if (ins.ballSide == 1)      // 球权在防守方
     {
@@ -450,10 +589,22 @@ var checkInstructionMovieEnd = function (mc, callbacks) {
         mc.p[0].info.ready = false;
         mc.p[1].info.ready = false;
 
-        mc.pause = false;
-        mc.state = matchDefs.MATCH_STATE.Normal;
+        switch (mc.nextTriggerMenu) {
+            case matchDefs.MENU_TYPE.NONE:
+            {
+                mc.pause = false;
+                mc.state = matchDefs.MATCH_STATE.Normal;
 
-        callbacks.resumeMatch(mc.p);
+                var msg = {leftStunnedPlayers: mc.p[0].info.stunnedPlayers, rightStunnedPlayers: mc.p[1].info.stunnedPlayers};
+                callbacks.resumeMatch(mc.p, msg);
+                break;
+            }
+            case matchDefs.MENU_TYPE.GOAL_KEEPER_DEF_G:
+            {
+                triggerGoalkeeperIns(mc, callbacks);
+                break;
+            }
+        }
     }
 }
 
@@ -494,6 +645,8 @@ var updateMatch = function (dt, mc, callbacks) {
     }
 
     if (mc.state == matchDefs.MATCH_STATE.Normal) {
+        checkStun(mc.p[0].info, dt);
+        checkStun(mc.p[1].info, dt);
         updateDefendPlayerAroundBall(mc);
         if (checkEncounterInDribble(mc, dt, callbacks.triggerMenu)) {
             p.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
@@ -501,6 +654,19 @@ var updateMatch = function (dt, mc, callbacks) {
             mc.state = matchDefs.MATCH_STATE.WaitInstruction;
             mc.pause = true;
             return;
+        }
+    }
+}
+
+
+var checkStun = function(p, dt)
+{
+    if (p.stunnedTime > 0) {
+        p.stunnedTime -= dt;
+        if (p.stunnedTime <= 0) {
+            for (var i = 0; i < p.players.length; ++i) {
+                p.players[i].stunned = false;
+            }
         }
     }
 }
@@ -521,15 +687,22 @@ var initPlayer = function (p) {
             waitInstructionTime: 0,
             score: 0,
             lastSyncTime: 0,
+            side: 0,
             encounter: {
                 menuType: matchDefs.MENU_TYPE.NONE,
                 involePlayers: [],
                 instructions: []                        // 触发遭遇时候，玩家选择的指令，从客户端得到，数量等于参与遭遇的球员人数
             },
             formationId: fid,                              // TODO: 阵型编号，从数据库读取（Player表中）
-            players: p.players
+            players: p.players,
+            stunnedTime: 0
         }
     };
+
+    for (var i = 0; i < np.info.players.length; ++i)
+    {
+        np.info.players[i].stunned = false;
+    }
 
     return np;
 }
@@ -560,11 +733,15 @@ exp.createMatch = function (p1, p2, time, callback) {
         createdTime: time,
         startTime: 0,
         pause: false,
-        state: matchDefs.MATCH_STATE.None
+        state: matchDefs.MATCH_STATE.None,
+        nextTriggerMenu: matchDefs.MENU_TYPE.NONE
     };
 
     initPlayerPositions(mc.p[0].info.players, mc.p[0].info.formationId, true);
     initPlayerPositions(mc.p[1].info.players, mc.p[1].info.formationId, false);
+
+    mc.p[0].side = 0;   // left
+    mc.p[1].side = 1;   // right
 
     matchs[token] = mc;
 
@@ -721,13 +898,13 @@ exp.syncPlayerPos = function (token, uid, teamPos, ballPos, timeStamp) {
     var p;
     var attack = false;
     if (mc.p[0].uid == uid) {
-        p = mc.p[0].info.players;
+        p = mc.p[0].info;
         if (mc.attackSide == 0) {
             attack = true;
         }
     }
     else if (mc.p[1].uid == uid) {
-        p = mc.p[1].info.players;
+        p = mc.p[1].info;
         if (mc.attackSide == 1) {
             attack = true;
         }
@@ -741,15 +918,24 @@ exp.syncPlayerPos = function (token, uid, teamPos, ballPos, timeStamp) {
         mc.ball = ballPos;
     }
 
+    var player = p.players;
     var i = 0;
     var j = 0;
     for (i = 0, j = 0; i < teamPos.length; i += 4, ++j) {
-
-        p[j].position.x = teamPos[i];
-        p[j].position.y = teamPos[i + 1];
+        if (player[j].stunned == false)
+        {
+            player[j].position.x = teamPos[i];
+            player[j].position.y = teamPos[i + 1];
+        }
+        else
+        {
+            teamPos[i] = player[j].position.x;
+            teamPos[i + 1] = player[j].position.y;
+        }
     }
 
-    p.lastSyncTime = timeStamp;
+
+    player.lastSyncTime = timeStamp;
 
     mc.syncCount++;
 }
@@ -758,27 +944,54 @@ exp.syncPlayerPos = function (token, uid, teamPos, ballPos, timeStamp) {
 // targetPlayer只在进攻方传球时用，用于标识接球队员编号
 exp.menuCmd = function (token, uid, cmd, targetPlayer, callback) {
     var mc = matchs[token];
-    var p;
-    if (mc.p[0].uid == uid) {
-        p = mc.p[0].info;
-    }
-    else if (mc.p[1].uid == uid) {
-        p = mc.p[1].info;
-    }
 
-    var len = p.encounter.involePlayers.length;
-    p.encounter.instructions.push(cmd);
-    if (targetPlayer !== undefined && targetPlayer != null) {
-        p.encounter.involePlayers.push(targetPlayer);
-    }
+    var countDown = 0;
 
-    var countDown;
-    if (p.encounter.instructions.length < len) {
-        p.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
-        countDown = matchDefs.INSTRUCTION_WAIT_TIME;
+    if (mc.state == matchDefs.MATCH_STATE.Normal) {
+        if (uid == mc.p[mc.attackSide].uid) {
+            var p = mc.p[mc.attackSide].info;
+            var op = mc.p[getOtherSide(mc.attackSide)].info;
+
+            p.encounter.involePlayers = [mc.ball];
+            if (targetPlayer !== undefined && targetPlayer != null) {
+                p.encounter.involePlayers.push(targetPlayer);
+            }
+
+            p.encounter.instructions = [cmd];
+            p.encounter.menuType = matchDefs.MENU_TYPE.DEFAULT_ATK_G;
+            p.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
+            op.encounter.instructions = [];
+            op.encounter.involePlayers = [];
+            op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
+            op.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
+
+            mc.state = matchDefs.MATCH_STATE.WaitInstruction;
+            mc.pause = true;
+        }
     }
-    else {
-        countDown = 0;
+    else if (mc.state == matchDefs.MATCH_STATE.WaitInstruction)
+    {
+        var p;
+        if (mc.p[0].uid == uid) {
+            p = mc.p[0].info;
+        }
+        else if (mc.p[1].uid == uid) {
+            p = mc.p[1].info;
+        }
+
+        var len = p.encounter.involePlayers.length;
+        p.encounter.instructions.push(cmd);
+        if (targetPlayer !== undefined && targetPlayer != null) {
+            p.encounter.involePlayers.push(targetPlayer);
+        }
+
+        if (p.encounter.instructions.length < len) {
+            p.waitInstructionTime = matchDefs.INSTRUCTION_WAIT_TIME;
+            countDown = matchDefs.INSTRUCTION_WAIT_TIME;
+        }
+        else {
+            countDown = 0;
+        }
     }
 
     utils.invokeCallback(callback, null, countDown);

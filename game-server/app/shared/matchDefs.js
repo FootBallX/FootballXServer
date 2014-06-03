@@ -2,6 +2,9 @@ var mi = require('./matchMenuItem');
 
 module.exports = {
     INSTRUCTION_WAIT_TIME:10000,         // 10 seconds
+    STUNNED_TIME:2000,                  // 2 seconds
+
+    ONE_TWO_OFFSET:150,                 // 二过一时，球员往前移动的距离
 
     MENU_TYPE_INSTRUCTIONS: [
         [mi.MENU_ITEM.Dribble, mi.MENU_ITEM.Pass, mi.MENU_ITEM.Shoot, mi.MENU_ITEM.OneTwo],     // 0
