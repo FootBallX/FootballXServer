@@ -198,3 +198,15 @@ pro.instructionMovieEnd = function (msg, session, next) {
         next(err, {});
     });
 }
+
+
+
+//  for test
+pro.setBall = function(msg, session, next) {
+    var self = this;
+    var t = session.get('matchToken');
+
+    MM.setBall(t, session.uid, msg.side, msg.playerNumber, function(err){
+       next(err, {});
+    });
+}

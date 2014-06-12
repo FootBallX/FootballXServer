@@ -66,8 +66,8 @@ var updateDefendPlayerAroundBall = function (mc) {
     var p = mc.p[mc.attackSide].info;
     var op = mc.p[getOtherSide(mc.attackSide)].info;
 
-    console.log('mc.ball: ' + mc.ball);
     p.encounter.involePlayers = [mc.ball];
+    var v1 = p.players[mc.ball].position;
     op.encounter.involePlayers = [];
     for (var i = 0; i < op.players.length; ++i) {
         if (op.players[i].stunned == false) {
@@ -131,13 +131,14 @@ var checkInstructions = function (mc) {
     var plen1 = p.encounter.instructions.length;
     var oplen1 = op.encounter.instructions.length;
     var oplen2 = op.encounter.involePlayers.length;
+
     if (plen1 == 1 && oplen1 == oplen2) {
         var m1 = matchDefs.MENU_TYPE_INSTRUCTIONS[p.encounter.menuType];
         var m2 = matchDefs.MENU_TYPE_INSTRUCTIONS[op.encounter.menuType];
         var ins;
 
         ins = p.encounter.instructions[0];
-        if (!utils.arrayContains(m1, ins)) {
+        if (p.encounter.menuType != matchDefs.MENU_TYPE.NONE && !utils.arrayContains(m1, ins)) {
             return false;
         }
 
@@ -245,10 +246,11 @@ var getRandomBallTargets = function (mc) {
     return player;
 }
 
-var checkAutoEncounterOnRoute = function(mc, p, passFromPlayerNumber, passToPlayerNumber, op, ins, action)
+
+var checkAutoEncounterOnRoute = function(mc, p, p1, p2, op, ins, action)
 {
-    var p1 = p.players[passFromPlayerNumber].position;
-    var p2 = p.players[passToPlayerNumber].position;
+//    var p1 = p.players[passFromPlayerNumber].position;
+//    var p2 = p.players[passToPlayerNumber].position;
 
     var inter = false;
     // 从1开始，跳过门将
@@ -352,11 +354,11 @@ var triggerGoalkeeperIns = function(mc, callbacks) {
     var p = u1.info;
     var op = u2.info;
 
+    mc.nextTriggerMenu = matchDefs.MENU_TYPE.NONE;
     p.encounter.menuType = matchDefs.MENU_TYPE.NONE;
+    p.encounter.instructions = [matchMenuItem.MENU_ITEM.None];
     op.encounter.menuType = matchDefs.MENU_TYPE.GOAL_KEEPER_DEF_G;
-    p.encounter.involePlayers = [];
     op.encounter.involePlayers = [0];   // goalkeeper
-    p.encounter.instructions = [];
     op.encounter.instructions = [];
     utils.invokeCallback(callbacks.triggerMenu, u1, u2, p.encounter.involePlayers, op.encounter.involePlayers);
 
@@ -389,24 +391,30 @@ var processInstructions = function (mc, callbacks) {
     var animations;
 
     var ins1 = p.encounter.instructions[0];
+    console.log('ins1: ' + ins1);
     atkPlayerNumber = p.encounter.involePlayers[0];
-    matchMenuItem.CLEAR_ANIMATIONS();
-    matchMenuItem.MENU_FUNCS[ins1](p.players[atkPlayerNumber], isAirBall);
-    animations = matchMenuItem.GET_ANIMATIONS();
 
-    result = matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS;
-    ins.instructions.push({side: 0, playerNumber: atkPlayerNumber, ins: ins1, result: result, animations: animations});
+    if (p.encounter.menuType != matchDefs.MENU_TYPE.NONE) {
+        console.log('1');
+        matchMenuItem.CLEAR_ANIMATIONS();
+        matchMenuItem.MENU_FUNCS[ins1](p.players[atkPlayerNumber], isAirBall);
+        animations = matchMenuItem.GET_ANIMATIONS();
 
+        result = matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS;
+        ins.instructions.push({side: 0, playerNumber: atkPlayerNumber, ins: ins1, result: result, animations: animations});
+    }
 
+    console.log('2');
     var inter = false;
     for (var i = 0; i < op.encounter.instructions.length; ++i) {
+        console.log('3');
         var ins2 = op.encounter.instructions[i];
         defPlayerNumber = op.encounter.involePlayers[i];
         matchMenuItem.CLEAR_ANIMATIONS();
         result = matchMenuItem.MENU_FUNCS[ins2](p.players[atkPlayerNumber], op.players[defPlayerNumber]);
         animations = matchMenuItem.GET_ANIMATIONS();
         ins.instructions.push({side: 1, playerNumber: defPlayerNumber, ins: ins2, result: result, animations: animations});
-
+        console.log('4');
         switch (result) {
             case matchMenuItem.MENU_ITEM_RETURN_CODE.RET_FAIL:
                 break;
@@ -435,6 +443,7 @@ var processInstructions = function (mc, callbacks) {
                 break;
         }
 
+        console.log('5');
         if (inter == true) {
             break;
         }
@@ -447,7 +456,9 @@ var processInstructions = function (mc, callbacks) {
             case matchMenuItem.MENU_ITEM.Pass:
                 // 检查传球路线上是否有遭遇发送
             {
-                if (checkAutoEncounterOnRoute(mc, p, p.encounter.involePlayers[0], p.encounter.involePlayers[1], op, ins, matchMenuItem.MENU_ITEM.Intercept)) {
+                var p1 = p.players[p.encounter.involePlayers[0]].position;
+                var p2 = p.players[p.encounter.involePlayers[1]].position;
+                if (checkAutoEncounterOnRoute(mc, p, p1, p2, op, ins, matchMenuItem.MENU_ITEM.Intercept)) {
                     //TODO: 半路被截断，是否需要硬直？
                     stun(p, true);
                 }
@@ -469,12 +480,14 @@ var processInstructions = function (mc, callbacks) {
             }
 
             case matchMenuItem.MENU_ITEM.Shoot:
-                if (checkAutoEncounterOnRoute(mc, p, p.encounter.involePlayers[0], p.encounter.involePlayers[1], op, ins, matchMenuItem.MENU_ITEM.Block)) {
+                var p1 = p.players[p.encounter.involePlayers[0]].position;
+                var p2 = op.players[0].position;
+                if (checkAutoEncounterOnRoute(mc, p, p1, p2, op, ins, matchMenuItem.MENU_ITEM.Block)) {
                     //TODO: 半路被截断，是否需要硬直？
                     stun(p, true);
                 }
                 else {
-                    mc.nextTriggerMenu = matchMenuItem.MENU_TYPE.GOAL_KEEPER_DEF_G;
+                    mc.nextTriggerMenu = matchDefs.MENU_TYPE.GOAL_KEEPER_DEF_G;
                     ins.ballSide = 0;
                     ins.playerNumber = p.encounter.involePlayers[0];
                     ins.ballPosX = p.players[ins.playerNumber].position.x;
@@ -487,7 +500,9 @@ var processInstructions = function (mc, callbacks) {
                 stun(op, false);
                 break;
             case matchMenuItem.MENU_ITEM.OneTwo:
-                if (checkAutoEncounterOnRoute(mc, p, p.encounter.involePlayers[0], p.encounter.involePlayers[1], op, ins, matchMenuItem.MENU_ITEM.Intercept)) {
+                var p1 = p.players[p.encounter.involePlayers[0]].position;
+                var p2 = p.players[p.encounter.involePlayers[1]].position;
+                if (checkAutoEncounterOnRoute(mc, p, p1, p2, op, ins, matchMenuItem.MENU_ITEM.Intercept)) {
                     stun(p, true);
                 }
                 else {
@@ -515,7 +530,7 @@ var processInstructions = function (mc, callbacks) {
                     ins.instructions.push({side: 0, playerNumber: assistPlayerNumber, ins: ins1, result: matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS, animations: animations});
 
                     // 回传
-                    if (checkAutoEncounterOnRoute(mc, p, p.encounter.involePlayers[1], p.encounter.involePlayers[0], op, ins, matchMenuItem.MENU_ITEM.Intercept)){
+                    if (checkAutoEncounterOnRoute(mc, p, p2, p1, op, ins, matchMenuItem.MENU_ITEM.Intercept)){
                         stun(p, true);
                     }
                     else {
@@ -552,11 +567,6 @@ var processInstructions = function (mc, callbacks) {
     utils.invokeCallback(callbacks.sendInstructions, mc.p, ins);
     process.nextTick(syncAllTeamStates.bind(null, mc, callbacks.syncTeam));
 
-    // 发送完毕后清空服务器指令状态
-    p.encounter.instructions = [];
-    p.encounter.involePlayers = [];
-    op.encounter.instructions = [];
-    op.encounter.involePlayers = [];
     mc.state = matchDefs.MATCH_STATE.WaitInstructionMovieEnd;
 }
 
@@ -594,6 +604,12 @@ var checkInstructionMovieEnd = function (mc, callbacks) {
             {
                 mc.pause = false;
                 mc.state = matchDefs.MATCH_STATE.Normal;
+
+                // 发送完毕后清空服务器指令状态
+                mc.p[0].info.encounter.instructions = [];
+                mc.p[0].info.encounter.involePlayers = [];
+                mc.p[1].info.encounter.instructions = [];
+                mc.p[1].info.encounter.involePlayers = [];
 
                 var msg = {leftStunnedPlayers: mc.p[0].info.stunnedPlayers, rightStunnedPlayers: mc.p[1].info.stunnedPlayers};
                 callbacks.resumeMatch(mc.p, msg);
@@ -948,6 +964,7 @@ exp.menuCmd = function (token, uid, cmd, targetPlayer, callback) {
     var countDown = 0;
 
     if (mc.state == matchDefs.MATCH_STATE.Normal) {
+        console.log('++++++++++++++ ' + cmd);
         if (uid == mc.p[mc.attackSide].uid) {
             var p = mc.p[mc.attackSide].info;
             var op = mc.p[getOtherSide(mc.attackSide)].info;
@@ -982,6 +999,7 @@ exp.menuCmd = function (token, uid, cmd, targetPlayer, callback) {
         var len = p.encounter.involePlayers.length;
         p.encounter.instructions.push(cmd);
         if (targetPlayer !== undefined && targetPlayer != null) {
+            console.log('targetPlayer: ' + targetPlayer);
             p.encounter.involePlayers.push(targetPlayer);
         }
 
@@ -1010,6 +1028,20 @@ exp.setInstructionMovieEnd = function (token, uid, callback) {
 
     console.log('MovieEnd: ' + uid);
     pInfo.ready = true;
+
+    utils.invokeCallback(callback, null);
+}
+
+
+
+
+
+//// for test
+exp.setBall = function(token, uid, side, playerNumber, callback) {
+    var mc = matchs[token];
+
+    mc.attackSide = side;
+    mc.ball = playerNumber;
 
     utils.invokeCallback(callback, null);
 }

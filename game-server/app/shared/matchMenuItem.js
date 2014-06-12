@@ -181,7 +181,6 @@ function TackleBall(o1, o2) {
             var v = Rand() % 1000 + (o1.passSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_1 + g_ballSpeed;
             // debug
             v = g_WinParam_2;
-            Log(v);
             if (v >= g_WinParam_2) {
                 PlayAnimation(aniDef.Animations.ground_chanqiu_failed_ccbi, 0);
                 return RET_FAIL;
@@ -222,8 +221,6 @@ function TackleBall(o1, o2) {
         case 2: //铲球vs盘带
         {
             var v = Rand() % 1000 + (o1.dribbleSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_4;
-            Log(v);
-            Log('盘带');
             v = g_WinParam_1;
             if (v >= g_WinParam_1) {
                 PlayAnimation(aniDef.Animations.ground_chanqiu_failed_ccbi, 0);
@@ -657,7 +654,7 @@ module.exports = {
         undefined,              // 8
         undefined,              // 9
         undefined,              // 10
-        undefined,              // 11
+        CatchBallGP,              // 11
         undefined,              // 12
         undefined               // 13
     ],
