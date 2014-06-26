@@ -39,7 +39,7 @@ var RET_REDUCE = 2;
 var RET_RANDOM_BALL = 3;
 
 var g_ballSpeed = 0; //球减速修正,需要在适当的时候初始化
-var g_isAir = false;
+var g_isLongBall = false;
 var g_type = 0;
 //0 = 地面 传球
 //1 = 地面 射门
@@ -120,10 +120,10 @@ function GetSpeed(o1) {
 
 //传球
 
-function StartPassBall(o1, isAir) {
+function StartPassBall(o1, isLongBall) {
     g_Animations = [];
-    g_isAir = isAir;
-    if (g_isAir) {
+    g_isLongBall = isLongBall;
+    if (g_isLongBall) {
         PlayAnimation(aniDef.Animations.air_chuanqiu_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 4;
@@ -143,9 +143,9 @@ function StartDribble(o1) {
     g_ballSpeed = 0;
 }
 
-function StartOneTwo(o1, isAir) {
+function StartOneTwo(o1, isLongBall) {
     g_Animations = [];
-    g_isAir = isAir;
+    g_isLongBall = isLongBall;
     PlayAnimation(aniDef.Animations.ground_chuanqiu_ccbi, 0);
     g_type = 3;
 }
@@ -154,7 +154,7 @@ function StartOneTwo(o1, isAir) {
 //获得球
 
 function ReceiveBall(o1) {
-    if (g_isAir) {
+    if (g_isLongBall) {
         PlayAnimation(aniDef.Animations.air_tingqiu_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 0;
@@ -536,10 +536,10 @@ function BlockBall(o1, o2) {
 
 //开始射门
 
-function StartShootBall(o1, isAir) {
+function StartShootBall(o1, isLong) {
     g_Animations = [];
 
-    if (g_isAir) {
+    if (g_isLongBall) {
         PlayAnimation(aniDef.Animations.air_shemen_ccbi, 0);
         g_ballSpeed = 0;
         g_type = 5;
@@ -558,6 +558,8 @@ function CatchBallGP(o1, o2) {
         case 1: //地面射门vs接球
         {
             var v = Rand() % 1000 + (o1.shootSkill + o1.groundSkill) - (o2.defenceSkill + o2.groundSkill) + g_OrderParam_29 + g_ballSpeed;
+            Log('V: ' + v);
+            v = 900;
             if (v >= g_WinParam_1) {
                 PlayAnimation(aniDef.Animations.keeper_woqiu_failed_ccbi, 0);
                 return RET_FAIL;
@@ -632,6 +634,11 @@ function HitBallGP(o1, o2) {
 }
 
 
+
+function Goal() {
+    PlayAnimation(aniDef.Animations.ball_goal_ccbi, 0);
+}
+
 // AUTO_GEN_CODE_END
 
 module.exports = {
@@ -661,6 +668,7 @@ module.exports = {
 
     ReceiveBall:ReceiveBall,
     OneTwoPassBack:OneTwoPassBack,
+    Goal:Goal,
 
     MENU_ITEM: {
         Pass: 0,

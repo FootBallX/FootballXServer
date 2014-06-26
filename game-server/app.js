@@ -11,6 +11,7 @@ var matchFilter = require('./app/servers/match/filter/matchFilter');
 /**
  * Init app for client.
  */
+
 var app = pomelo.createApp();
 app.set('name', 'FootballXServer');
 

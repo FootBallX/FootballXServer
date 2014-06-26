@@ -1,4 +1,6 @@
 var mi = require('./matchMenuItem');
+var Rect = require('../util/Geometry/Rect');
+
 
 module.exports = {
     INSTRUCTION_WAIT_TIME:10000,         // 10 seconds
@@ -36,6 +38,18 @@ module.exports = {
         NONE: 11
     },
 
+    POST_INSTRUNCTION_ACTION: {
+        TriggerGoalkeeperDefG : 0,
+        CheckPenaltyEncounter : 1,
+        None: 3
+    },
+
+    ENCOUNTER_PLACE : {
+        DEF_PANELTY_AREA : 0,
+        ATK_PANELTY_AREA : 1,
+        OTHER_AREA : 2
+    }
+
     MATCH_STATE: {
         Normal: 0,
         WaitInstruction: 1,
@@ -43,9 +57,13 @@ module.exports = {
         None: 3
     },
 
-    Pitch : {
-        Width : 1000,
-        Height : 650
+    Pitch: {
+        Width: 1000,
+        Height: 650,
+        PenaltyArea: [
+            new Rect(0, 175, 150, 300),
+            new Rect(850, 175, 150, 300)
+        ]
     },
 
     RandomBallRange : {
