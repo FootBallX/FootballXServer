@@ -48,7 +48,7 @@ module.exports = {
         DEF_PANELTY_AREA : 0,
         ATK_PANELTY_AREA : 1,
         OTHER_AREA : 2
-    }
+    },
 
     MATCH_STATE: {
         Normal: 0,

@@ -105,30 +105,30 @@ var didEncounterInDribble = function(mc, callback) {
 
     // 检查是否空中遭遇
 
-    if (mc.isAirEncounter) {
-        switch (mc.encounterPlace)
-        {
-            case matchDefs.ENCOUNTER_PLACE.DEF_PANELTY_AREA:
-                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_OPPSITE_A;
-                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_DEF_SELF_A;
-                break;
-            case matchDefs.ENCOUNTER_PLACE.ATK_PANELTY_AREA:
-                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_SELF_A;
-                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_DEF_OPPSITE_A;
-                break;
-            case matchDefs.ENCOUNTER_PLACE.OTHER_AREA:
-                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_G;
-                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
-                break;
-        }
-        // 供方禁区内
-
-    }
-    else {
-        p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_G;
-        op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
-        break;
-    }
+//    if (mc.isAirEncounter) {
+//        switch (mc.encounterPlace)
+//        {
+//            case matchDefs.ENCOUNTER_PLACE.DEF_PANELTY_AREA:
+//                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_OPPSITE_A;
+//                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_DEF_SELF_A;
+//                break;
+//            case matchDefs.ENCOUNTER_PLACE.ATK_PANELTY_AREA:
+//                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_SELF_A;
+//                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_DEF_OPPSITE_A;
+//                break;
+//            case matchDefs.ENCOUNTER_PLACE.OTHER_AREA:
+//                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_G;
+//                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
+//                break;
+//        }
+//        // 供方禁区内
+//
+//    }
+//    else {
+//        p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_G;
+//        op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
+//        break;
+//    }
 
     p.encounter.instructions = [];
     op.encounter.instructions = [];

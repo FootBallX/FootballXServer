@@ -56,14 +56,14 @@ pro.startModules = function(modules, cb) {
 /**
  * Append the default system admin modules
  */
-pro.registerDefaultModules = function(isMaster, app) {
-  if(isMaster) {
-    app.registerAdmin(require('../modules/masterwatcher'), {app: app});
-    app.registerAdmin(admin.modules.rpcDebug);
-  } else {
-    app.registerAdmin(require('../modules/monitorwatcher'), {app: app});
+pro.registerDefaultModules = function(isMaster, app, closeWatcher) {
+  if(!closeWatcher) {
+    if(isMaster) {
+      app.registerAdmin(require('../modules/masterwatcher'), {app: app});
+    } else {
+      app.registerAdmin(require('../modules/monitorwatcher'), {app: app});
+    }
   }
-
   app.registerAdmin(admin.modules.watchServer,{app:app});
   app.registerAdmin(require('../modules/console'), {app: app, starter: starter});
   if(app.enabled('systemMonitor')) {
@@ -71,7 +71,7 @@ pro.registerDefaultModules = function(isMaster, app) {
     app.registerAdmin(admin.modules.nodeInfo);
     app.registerAdmin(admin.modules.monitorLog, {path: pathUtil.getLogPath(app.getBase())});
     app.registerAdmin(admin.modules.scripts, {app:app, path: pathUtil.getScriptPath(app.getBase())});
-    if(os.platform() !== 'win32') {
+    if(os.platform() !== Constants.PLATFORM.WIN) {
       app.registerAdmin(admin.modules.profiler);
     }
   }

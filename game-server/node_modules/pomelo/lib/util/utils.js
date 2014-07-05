@@ -1,7 +1,9 @@
 var os = require('os');
 var util = require('util');
 var exec = require('child_process').exec;
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var Constants = require('./constants');
+var pomelo = require('../pomelo');
 
 var utils = module.exports;
 
@@ -189,8 +191,15 @@ utils.checkPort = function(server, cb) {
   var host = server.host;
   var generateCommand = function(self, host, port) {
     var cmd;
+    var ssh_params = pomelo.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS);
+    if(!!ssh_params && Array.isArray(ssh_params)) {
+      ssh_params = ssh_params.join(' ');
+    }
+    else {
+      ssh_params = "";
+    }
     if (!self.isLocal(host)) {
-      cmd = util.format('ssh %s "netstat -an|awk \'{print $4}\'|grep %s|wc -l"', host, port);
+      cmd = util.format('ssh %s %s "netstat -an|awk \'{print $4}\'|grep %s|wc -l"', host, ssh_params, port);
     } else {
       cmd = util.format('netstat -an|awk \'{print $4}\'|grep %s|wc -l', port);
     }
@@ -222,7 +231,11 @@ utils.checkPort = function(server, cb) {
 
 utils.isLocal = function(host) {
   var app = require('../pomelo').app;
-  return host === '127.0.0.1' || host === 'localhost' || inLocal(host) || host === app.master.host;
+  if(!app) {
+    return host === '127.0.0.1' || host === 'localhost' || inLocal(host);
+  } else {
+    return host === '127.0.0.1' || host === 'localhost' || inLocal(host) || host === app.master.host;
+  }
 };
 
 /**
@@ -267,6 +280,28 @@ utils.loadCluster = function(app, server, serverMap) {
   }
 };
 
+utils.extends = function(origin, add) {
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+utils.headHandler = function(headBuffer) {
+  var len = 0;
+  for(var i=1; i<4; i++) {
+    if(i > 1) {
+      len <<= 8;
+    }
+    len += headBuffer.readUInt8(i);
+  }
+  return len;
+};
+
 var inLocal = function(host) {
   for (var index in localIps) {
     if (host === localIps[index]) {
@@ -289,3 +324,7 @@ var localIps = function() {
   }
   return ips;
 }();
+
+var isObject = function(arg) {
+  return typeof arg === 'object' && arg !== null;
+};
