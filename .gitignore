@@ -1,5 +1,5 @@
 
 .DS_Store
-
+game-server/node_modules
 *.log
 .idea
