@@ -35,9 +35,8 @@ pro.auth = function(msg, callback) {
 	}
 
 	userDao.getUserInfo(userName, function(err, res) {
-		if (err == null) {
+		if (err == null && res != null) {
 			if (res.password == password) {
-
 				callback(null, Code.OK, res.uid);
 				return;
 			}

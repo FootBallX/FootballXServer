@@ -74,11 +74,12 @@ var pro = Handler.prototype;
 pro.signUp = function (msg, session, next) {
     var self = this;
     var uid = session.uid;
-    var pid = session.settings.playerId;
     var sid = session.frontendId;
 
-    userDao.getCardsOnDuty(pid, function(err, res) {
+    userDao.getCardsOnDuty(uid, function(err, res) {
         if (err || res.length != 11){
+            console.error(err);
+            console.error(res);
             next(null, {code: Code.LEAGUE.FA_FORMATION_ERR});
         }
         else {
@@ -89,7 +90,7 @@ pro.signUp = function (msg, session, next) {
                 res[i]['aiClass'] = 0;
             }
 
-            LM.addPlayer({uid: uid, pid: pid, sid: sid, players:res});
+            LM.addPlayer({uid: uid, sid: sid, players:res});
             process.nextTick(LM.checkPair.bind(null, onPairSuccess.bind(self)));
             next(null, {code: Code.OK});
         }

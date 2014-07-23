@@ -53,13 +53,10 @@ pro.login = function(msg, session, next) {
 
 			uid = userId;
             auth = authority;
-			//self.app.get('sessionService').kick(uid, cb);
             session.set('authority', auth);
 			session.bind(uid, cb);
 		},
 		function(cb) {
-			// session.set('playername', player.name);
-			// session.set('playerId', player.id);
 			session.on('closed', onUserLeave.bind(null, self.app));
 			session.pushAll(cb);
 		}
@@ -88,8 +85,8 @@ var onUserLeave = function(app, session, reason) {
 
 	app.rpc.auth.authRemote.userLeave(session, session.uid, null);
 
-	var pid = session.get('playerId');
-	app.rpc.gameplay.gameplayRemote.playerLeave(session, pid, null);
+	var uid = session.uid;
+	app.rpc.gameplay.gameplayRemote.playerLeave(session, uid, null);
 
     app.rpc.league.leagueRemote.playerLeave(session, session.uid, null);
 
@@ -121,7 +118,6 @@ pro.getPlayerInfo = function(msg, session, next) {
 			return;
 		}
 
-		session.set('playerId', pif.pid);
 		session.pushAll(null);
 
 		next(null, {

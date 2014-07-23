@@ -2,5 +2,4 @@
 .DS_Store
 
 *.log
-game-server/logs
 .idea

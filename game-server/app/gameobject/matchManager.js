@@ -98,37 +98,36 @@ var updateDefendPlayerAroundBall = function (mc) {
 
 
 var didEncounterInDribble = function(mc, callback) {
-    var u1 = mc.p[attackSide];
+    var u1 = mc.p[mc.attackSide];
     var u2 = mc.p[getOtherSide(mc.attackSide)];
     var p = u1.info;
     var op = u2.info;
 
     // 检查是否空中遭遇
 
-//    if (mc.isAirEncounter) {
-//        switch (mc.encounterPlace)
-//        {
-//            case matchDefs.ENCOUNTER_PLACE.DEF_PANELTY_AREA:
-//                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_OPPSITE_A;
-//                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_DEF_SELF_A;
-//                break;
-//            case matchDefs.ENCOUNTER_PLACE.ATK_PANELTY_AREA:
-//                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_SELF_A;
-//                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_DEF_OPPSITE_A;
-//                break;
-//            case matchDefs.ENCOUNTER_PLACE.OTHER_AREA:
-//                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_G;
-//                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
-//                break;
-//        }
-//        // 供方禁区内
-//
-//    }
-//    else {
-//        p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_G;
-//        op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
-//        break;
-//    }
+    if (mc.isAirEncounter) {
+        switch (mc.encounterPlace)
+        {
+            case matchDefs.ENCOUNTER_PLACE.DEF_PANELTY_AREA:
+                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_OPPSITE_A;
+                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_DEF_SELF_A;
+                break;
+            case matchDefs.ENCOUNTER_PLACE.ATK_PANELTY_AREA:
+                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_SELF_A;
+                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_DEF_OPPSITE_A;
+                break;
+            case matchDefs.ENCOUNTER_PLACE.OTHER_AREA:
+                p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_G;
+                op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
+                break;
+        }
+        // 供方禁区内
+
+    }
+    else {
+        p.encounter.menuType = matchDefs.MENU_TYPE.ENCOUNTER_ATK_G;
+        op.encounter.menuType = matchDefs.MENU_TYPE.ENCOUTNER_DEF_G;
+    }
 
     p.encounter.instructions = [];
     op.encounter.instructions = [];
@@ -139,11 +138,14 @@ var checkEncounterInDribble = function (mc, dt, callback) {
     var u1 = mc.p[mc.attackSide];
     var u2 = mc.p[getOtherSide(mc.attackSide)];
 
+    var p = u1.info;
+    var op = u2.info;
+
     if (u2.info.encounter.involePlayers.length == 0) {
         mc.encounterTime = -1;
     }
     else if (op.encounter.involePlayers.length >= 4) {
-        didEncounterInDribble(u1, u2, callback);
+        didEncounterInDribble(mc, callback);
 
         mc.encounterTime = -1;
         return true;
@@ -154,7 +156,7 @@ var checkEncounterInDribble = function (mc, dt, callback) {
         }
         mc.encounterTime -= dt;
         if (mc.encounterTime < 0) {
-            didEncounterInDribble(u1, u2, callback);
+            didEncounterInDribble(mc, callback);
             return true;
         }
     }
@@ -803,6 +805,7 @@ var initPlayer = function (p) {
 }
 
 exp.createMatch = function (p1, p2, time, callback) {
+    console.log('create match');
     // TODO: token生成算法
     var token = ++globalToken;
 
