@@ -8,6 +8,8 @@ module.exports = {
 
     ONE_TWO_OFFSET:150,                 // 二过一时，球员往前移动的距离
 
+    INTER_WIDTH:10,                     // 传球路线上截球的宽度范围
+
     MENU_TYPE_INSTRUCTIONS: [
         [mi.MENU_ITEM.Dribble, mi.MENU_ITEM.Pass, mi.MENU_ITEM.Shoot, mi.MENU_ITEM.OneTwo],     // 0
         [mi.MENU_ITEM.Dribble, mi.MENU_ITEM.Pass, mi.MENU_ITEM.Shoot, mi.MENU_ITEM.OneTwo],     // 1

@@ -107,5 +107,10 @@ utils.arrayContains = function (arr, item) {
     return false;
 }
 
+
+utils.printPoint = function(text, pos) {
+    console.log(text + pos.x + ', ' + pos.y);
+}
+
 // print the file name and the line number ~ end
 

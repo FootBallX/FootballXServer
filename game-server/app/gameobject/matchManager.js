@@ -33,34 +33,65 @@ var getOtherSide = function (side) {
 
 
 var isPointOnTheWay = function (p1, p2, p) {
-    var bx = new Rect(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y), Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
-    if (!bx.containsPoint(p)) {
-        return false;
+    utils.printPoint('isPointOnTheWay p1: ', p1);
+    utils.printPoint('isPointOnTheWay p2: ', p2);
+    utils.printPoint('isPointOnTheWay p: ', p);
+
+    var halfWidth = matchDefs.INTER_WIDTH * 0.5;
+    if (p1.x == p2.x && p1.y == p2.y) {
+        if (Math.abs(p.x - p1.x) < halfWidth && Math.abs(p.y - p1.y) < halfWidth){
+            return true;
+        }
+        else {
+            return false;
+        }
     }
-
-    var vec = p2.sub(p1);
-    var angle = vec.getAngle();
-
-    var mat = new Matrix3();
-    mat.rotation(-angle);
-
-    var vP1 = p1.clone();
-    var vP2 = p2.clone();
-    var vP = p.clone();
-
-    geometry.vec2Transform(vP1, mat);
-    geometry.vec2Transform(vP2, mat);
-    geometry.vec2Transform(vP, mat);
-
-    if (vP.x < Math.min(vP1.x, vP2.x) || vP.x > Math.max(vP1.x, vP2.x)) {
-        return false;
+    else if (p1.x == p2.x) {
+        if (p.y > Math.min(p1.y, p2.y) && p.y < Math.max(p1.y, p2.y) && Math.abs(p.x - p1.x) < halfWidth) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
-
-    if (Math.abs(vP.y - vP1.y) > 10) {
-        return false;
+    else if (p1.y == p2.y) {
+        if (p.x > Math.min(p1.x, p2.x) && p.x < Math.max(p1.x, p2.x) && Math.abs(p.y - p1.y) < halfWidth) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
+    else {
+        var bx = new Rect(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y), Math.abs(p1.x - p2.x), Math.abs(p1.y - p2.y));
+        if (!bx.containsPoint(p)) {
+            return false;
+        }
 
-    return true;
+        var vec = p2.sub(p1);
+        var angle = vec.getAngle();
+
+        var mat = new Matrix3();
+        mat.rotation(-angle);
+
+        var vP1 = p1.clone();
+        var vP2 = p2.clone();
+        var vP = p.clone();
+
+        geometry.vec2Transform(vP1, mat);
+        geometry.vec2Transform(vP2, mat);
+        geometry.vec2Transform(vP, mat);
+
+        if (vP.x < Math.min(vP1.x, vP2.x) || vP.x > Math.max(vP1.x, vP2.x)) {
+            return false;
+        }
+
+        if (Math.abs(vP.y - vP1.y) > matchDefs.INTER_WIDTH) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 
@@ -302,6 +333,9 @@ var getRandomBallTargets = function (mc) {
 
 var checkAutoEncounterOnRoute = function(mc, p, p1, p2, op, ins, action)
 {
+    console.log('p1: ' + p1.x + ', ' + p1.y);
+    console.log('p2: ' + p2.x + ', ' + p2.y);
+    console.log('len: ' + op.players.length);
     var inter = false;
     // 从1开始，跳过门将
     for (var i = 1; i < op.players.length; ++i)
@@ -316,10 +350,11 @@ var checkAutoEncounterOnRoute = function(mc, p, p1, p2, op, ins, action)
                 break;
             }
         }
-
+        console.log( i + ' player pos: ' + op.players[i].position.x + ', ' + op.players[i].position.y);
         if (!found)
         {
             // TODO: 防守球员应该按照和球的距离排序
+            console.log('def pos: ' + op.players[i].position.x + ', ' + op.players[i].position.y);
             if (isPointOnTheWay(p1, p2, op.players[i].position)){
                 console.log('did on the way');
                 var ins2 = action;
