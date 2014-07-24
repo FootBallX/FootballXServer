@@ -1,16 +1,7 @@
-//var logger = require('pomelo-logger').getLogger(__filename);
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var pomelo = require('pomelo');
-//var dataApi = require('../util/dataApi');
-//var Player = require('../domain/entity/player');
-//var User = require('../domain/user');
-//var consts = require('../consts/consts');
-//var equipmentsDao = require('./equipmentsDao');
-//var bagDao = require('./bagDao');
-//var fightskillDao = require('./fightskillDao');
-//var taskDao = require('./taskDao');
 var async = require('async');
 var utils = require('../util/utils');
-//var consts = require('../consts/consts');
 var token = require('../shared/token');
 var Code = require('../shared/code');
 var SD = require('../gameobject/staticDatas');
@@ -18,23 +9,18 @@ var SD = require('../gameobject/staticDatas');
 
 var userDao = module.exports;
 
-/**
- * Get user Info by username.
- * @param {String} username
- * @param {String} passwd
- * @param {function} cb
- */
 userDao.getUserInfo = function (username, cb) {
-    pomelo.app.get('dbclient').do(function(db){
+    pomelo.app.get('dbclient').do(function(db, cleanUp){
         db.collection('Users').findOne({userName:username}, function(err, res){
             utils.invokeCallback(cb, err, res);
+            cleanUp();
         });
     });
 };
 
 
 userDao.getAllCardsInfo = function (cb) {
-    pomelo.app.get('dbclient').do(function (db) {
+    pomelo.app.get('dbclient').do(function (db, cleanUp) {
         db.collection('Cards').find({}, {_id: 0}).toArray(function (err, res) {
             if (!!err) {
                 utils.invokeCallback(cb, err);
@@ -42,13 +28,14 @@ userDao.getAllCardsInfo = function (cb) {
             else {
                 utils.invokeCallback(cb, null, res);
             }
+            cleanUp();
         });
     });
 }
 
 
 userDao.getCardGrowthInfo = function (cb) {
-    pomelo.app.get('dbclient').do(function (db) {
+    pomelo.app.get('dbclient').do(function (db, cleanUp) {
         db.collection('CardGrowth').find({}, {_id: 0}).toArray(function (err, res) {
             if (!!err) {
                 utils.invokeCallback(cb, err);
@@ -56,6 +43,7 @@ userDao.getCardGrowthInfo = function (cb) {
             else {
                 utils.invokeCallback(cb, null, res);
             }
+            cleanUp();
         });
     });
 }
@@ -64,7 +52,7 @@ userDao.getCardGrowthInfo = function (cb) {
 userDao.Login = function (un, pwd, callback) {
     var dbc = pomelo.app.get('dbclient');
     var uid, auth;
-    dbc.do(function(db){
+    dbc.do(function(db, cleanUp){
         var oluCol = db.collection('OnlineUsers');
         async.waterfall([
             function(cb) {
@@ -83,10 +71,12 @@ userDao.Login = function (un, pwd, callback) {
         ], function(err) {
             if (!!err) {
                 utils.invokeCallback(callback, null, Code.FAIL);
-                return;
+            }
+            else{
+                utils.invokeCallback(callback, null, Code.OK, uid, auth);
             }
 
-            utils.invokeCallback(callback, null, Code.OK, uid, auth);
+            cleanUp();
         });
     });
 };
@@ -95,15 +85,18 @@ userDao.Login = function (un, pwd, callback) {
 userDao.logout = function (uid, callback) {
     var dbc = pomelo.app.get('dbclient');
     var uid, auth;
-    dbc.do(function(db){
-        db.collection('OnlineUsers').remove({uid: uid}, callback);
+    dbc.do(function(db, cleanUp){
+        db.collection('OnlineUsers').remove({uid: uid}, function(err){
+            utils.invokeCallback(callback, err);
+            cleanUp();
+        });
     });
 };
 
 
 userDao.getPlayerInfo = function (uid, callback) {
     var dbc = pomelo.app.get('dbclient');
-    dbc.do(function(db){
+    dbc.do(function(db, cleanUp){
         var pcol = db.collection('Players');
         pcol.insert({uid:uid, nickName:"", level:1, money:0, formationId:0, maxCardId:0}, function(err, res){
             pcol.findOne({uid:uid}, {_id:0}, function(err, player){
@@ -113,6 +106,8 @@ userDao.getPlayerInfo = function (uid, callback) {
                 else {
                     utils.invokeCallback(callback, null, Code.OK, player);
                 }
+
+                cleanUp();
             });
         });
     });
@@ -121,8 +116,11 @@ userDao.getPlayerInfo = function (uid, callback) {
 
 
 userDao.kickAllUser = function (cb) {
-    pomelo.app.get('dbclient').do(function(db){
-        db.collection('OnlineUsers').remove({}, cb);
+    pomelo.app.get('dbclient').do(function(db, cleanUp){
+        db.collection('OnlineUsers').remove({}, function(err){
+            utils.invokeCallback(cb, err);
+            cleanUp();
+        });
     });
 };
 
@@ -131,8 +129,7 @@ userDao.kickAllUser = function (cb) {
 //获取上场球员属性
 userDao.getCardsOnDuty = function(uid, callback) {
     var dbc = pomelo.app.get('dbclient');
-
-    dbc.do(function(db){
+    dbc.do(function(db, cleanUp){
         db.collection('Players').aggregate([
             {$unwind: "$cards"},
             {$match:{uid:uid}},
@@ -141,6 +138,7 @@ userDao.getCardsOnDuty = function(uid, callback) {
             {$limit:11}
         ], function(err,result){
             if (!!err) {
+                console.error(err);
                 utils.invokeCallback(callback, err);
             }
             else {
@@ -161,6 +159,7 @@ userDao.getCardsOnDuty = function(uid, callback) {
                 if (cards.length != 11)
                 {
                     utils.invokeCallback(callback, new Error('The number of cards on duty mast be 11'));
+                    cleanUp();
                     return;
                 }
 
@@ -170,6 +169,7 @@ userDao.getCardsOnDuty = function(uid, callback) {
                     var data = SD.calcCards(c.pcId, c.cid, c.level, c.formationPos);
                     if (null == data) {
                         utils.invokeCallback(callback, new Error('Fail to calc card properties!'));
+                        cleanUp();
                         return;
                     }
                     calcCards.push(data);
@@ -177,19 +177,8 @@ userDao.getCardsOnDuty = function(uid, callback) {
 
                 utils.invokeCallback(callback, null, calcCards);
             }
+
+            cleanUp();
         });
     });
-
-
-//    var sql = 'call getCardsOnDuty(?)';
-//    var args = [uid]
-//
-//    dbc.query(sql, args, function(err, res) {
-//        if (err) {
-//            utils.invokeCallback(callback, err);
-//        }
-//        else {
-//            utils.invokeCallback(callback, null, res[0]);
-//        }
-//    });
 }

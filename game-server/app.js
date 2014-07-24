@@ -60,24 +60,6 @@ app.configure('production|development', 'auth', function () {
             console.error("make sure that database had been started");
         }
     });
-
-    userDao.getCardsOnDuty(4, function(err, res){
-        if (!err) {
-            console.dir(res);
-        }
-    });
-
-//    userDao.getUserInfo('tes0', function(err, res){
-//        if (!!err)
-//        {
-//            console.log('eee1');
-//            console.error(err);
-//        }
-//        else {
-//            console.log(res);
-//
-//        }
-//    });
 });
 
 

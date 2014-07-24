@@ -3,12 +3,13 @@
     "version":"0.0.1",
     "private":false,
     "dependencies":{
-        "pomelo":"1.0.0",
-		"async":"0.6.2",
-		"generic-pool":"2.0.4",
-		"mongodb":"1.4.7",
-		"pomelo-sync":"0.0.4",
-		"pomelo-sync-plugin":"0.0.1"
+     "pomelo":"1.0.0",
+	 "async":"0.6.2",
+     "generic-pool":"2.0.4",
+     "mongodb":"1.4.7",
+     "pomelo-sync":"0.0.4",
+     "pomelo-sync-plugin":"0.0.1",
+     "pomelo-logger": "0.1.5"
     }
 
 }

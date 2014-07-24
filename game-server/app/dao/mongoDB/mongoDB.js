@@ -1,6 +1,7 @@
 // mongoDB CRUD
 var mdbClient = module.exports;
 var utils = require('../../util/utils');
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 
 var _pool;
 
@@ -42,7 +43,9 @@ NND.do = function(cb){
             return;
         }
 
-        utils.invokeCallback(cb, client);
+        utils.invokeCallback(cb, client, function(){
+            _pool.release(client);
+        });
     })
 }
 
