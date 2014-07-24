@@ -14,6 +14,8 @@ var matchs = {};
 var globalToken = 0;
 var g_lastUpdateTime = 0;
 
+// TODO: checkEncounterInPenaltyArea 函数未完成
+
 var getBallPos = function (mc) {
     var players = mc.p[mc.attackSide].info.players
     var pos = players[mc.ball].position;
@@ -322,7 +324,7 @@ var checkAutoEncounterOnRoute = function(mc, p, p1, p2, op, ins, action)
                 console.log('did on the way');
                 var ins2 = action;
                 matchMenuItem.CLEAR_ANIMATIONS();
-                var result = matchMenuItem.MENU_FUNCS[ins2](p.players[passFromPlayerNumber], op.players[i]);
+                var result = matchMenuItem.MENU_FUNCS[ins2](p.players[p.encounter.involePlayers[0]], op.players[i]);
                 var animations = matchMenuItem.GET_ANIMATIONS();
                 ins.instructions.push({side: 1, playerNumber: i, ins: ins2, result: result, animations: animations});
                 var inter = false;
@@ -671,7 +673,7 @@ var checkInstructionMovieEnd = function (mc, callbacks) {
     var ready = mc.p[0].info.ready && mc.p[1].info.ready;
     if (ready)  // 双方都完成播放指令动画了
     {
-        console.log('resume match~~~~~~~');
+        console.log('resume match~~~~~~~ ' + mc.postInsAction);
         mc.p[0].info.ready = false;
         mc.p[1].info.ready = false;
 
@@ -698,7 +700,7 @@ var checkInstructionMovieEnd = function (mc, callbacks) {
             }
             case matchDefs.POST_INSTRUNCTION_ACTION.CheckPenaltyEncounter:
             {
-                if (checkEncounterInPenaltyArea(mc, callbacks))
+                checkEncounterInPenaltyArea(mc, callbacks);
                 break;
             }
         }
