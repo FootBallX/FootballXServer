@@ -517,7 +517,14 @@ var processInstructions = function (mc, callbacks) {
                 ins.ballPosY = player.newBallPos.y;
                 inter = true;
                 matchMenuItem.CLEAR_ANIMATIONS();
-                matchMenuItem.ReceiveBall(p.players[atkPlayerNumber]);
+                if (ins.ballSide == 0){
+                    matchMenuItem.ReceiveBall(p.players[ins.playerNumber]);
+                }
+                else
+                {
+                    matchMenuItem.ReceiveBall(op.players[ins.playerNumber]);
+                }
+
                 animations = matchMenuItem.GET_ANIMATIONS();
                 ins.instructions.push({side: 0, playerNumber: player.playerNumber, ins: ins1, result: matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS, animations: animations});
 
@@ -546,11 +553,17 @@ var processInstructions = function (mc, callbacks) {
                     }
                     else {
                         // 一切OK，传球成功
-                        mc.postInsAction = matchDefs.POST_INSTRUNCTION_ACTION.CheckPenaltyEncounter;
-
                         var targetPlayerNumber = p.encounter.involePlayers[1];
+                        var targetPlayer = p.players[targetPlayerNumber];
+                        if (checkInPenaltyArea(targetPlayer.position)) {
+                            mc.postInsAction = matchDefs.POST_INSTRUNCTION_ACTION.CheckPenaltyEncounter;
+                        }
+                        else {
+                            mc.postInsAction = matchDefs.POST_INSTRUNCTION_ACTION.None;
+                        }
+
                         matchMenuItem.CLEAR_ANIMATIONS();
-                        matchMenuItem.ReceiveBall(p.players[atkPlayerNumber]);
+                        matchMenuItem.ReceiveBall(targetPlayer);
                         animations = matchMenuItem.GET_ANIMATIONS();
                         ins.instructions.push({side: 0, playerNumber: atkPlayerNumber, ins: ins1, result: matchMenuItem.MENU_ITEM_RETURN_CODE.RET_SUCCESS, animations: animations});
 
