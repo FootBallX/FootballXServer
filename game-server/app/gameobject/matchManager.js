@@ -33,10 +33,6 @@ var getOtherSide = function (side) {
 
 
 var isPointOnTheWay = function (p1, p2, p) {
-    utils.printPoint('isPointOnTheWay p1: ', p1);
-    utils.printPoint('isPointOnTheWay p2: ', p2);
-    utils.printPoint('isPointOnTheWay p: ', p);
-
     var halfWidth = matchDefs.INTER_WIDTH * 0.5;
     if (p1.x == p2.x && p1.y == p2.y) {
         if (Math.abs(p.x - p1.x) < halfWidth && Math.abs(p.y - p1.y) < halfWidth){
@@ -333,9 +329,6 @@ var getRandomBallTargets = function (mc) {
 
 var checkAutoEncounterOnRoute = function(mc, p, p1, p2, op, ins, action)
 {
-    console.log('p1: ' + p1.x + ', ' + p1.y);
-    console.log('p2: ' + p2.x + ', ' + p2.y);
-    console.log('len: ' + op.players.length);
     var inter = false;
     // 从1开始，跳过门将
     for (var i = 1; i < op.players.length; ++i)
@@ -350,13 +343,11 @@ var checkAutoEncounterOnRoute = function(mc, p, p1, p2, op, ins, action)
                 break;
             }
         }
-        console.log( i + ' player pos: ' + op.players[i].position.x + ', ' + op.players[i].position.y);
+
         if (!found)
         {
             // TODO: 防守球员应该按照和球的距离排序
-            console.log('def pos: ' + op.players[i].position.x + ', ' + op.players[i].position.y);
             if (isPointOnTheWay(p1, p2, op.players[i].position)){
-                console.log('did on the way');
                 var ins2 = action;
                 matchMenuItem.CLEAR_ANIMATIONS();
                 var result = matchMenuItem.MENU_FUNCS[ins2](p.players[p.encounter.involePlayers[0]], op.players[i]);
